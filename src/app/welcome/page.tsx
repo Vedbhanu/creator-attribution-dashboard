@@ -38,7 +38,7 @@ export default function LandingPage() {
             href="/dashboard"
             className="px-5 py-2.5 rounded-xl bg-[#4A4FE0] hover:bg-[#3b40cc] text-white font-extrabold text-xs border-2 border-[#111111] shadow-[3px_3px_0px_#111111] active:translate-x-[2px] active:translate-y-[2px] active:shadow-[1px_1px_0px_#111111] transition-all"
           >
-            Open Dashboard →
+            Live Interactive Demo →
           </Link>
         </div>
       </header>
