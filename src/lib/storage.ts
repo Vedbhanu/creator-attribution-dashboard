@@ -78,13 +78,16 @@ class StorageManager {
   }
 
   async getContentById(id: string): Promise<ContentItem | null> {
+    const memoryItem = this.contentList.find(c => c.id === id);
+    if (memoryItem) return memoryItem;
+
     if (isSupabaseConfigured() && supabase) {
       const { data, error } = await supabase.from('content').select('*').eq('id', id).single();
       if (!error && data) {
         return data as ContentItem;
       }
     }
-    return this.contentList.find(c => c.id === id) || null;
+    return null;
   }
 
   async createContent(item: Omit<ContentItem, 'id' | 'created_at'>): Promise<ContentItem> {
@@ -113,6 +116,37 @@ class StorageManager {
     };
     this.contentList.unshift(newItem);
     return newItem;
+  }
+
+  async updateContent(id: string, partial: Partial<Omit<ContentItem, 'id' | 'created_at' | 'tracking_slug'>>): Promise<ContentItem | null> {
+    if (isSupabaseConfigured() && supabase) {
+      const { data, error } = await supabase
+        .from('content')
+        .update({
+          title: partial.title,
+          platform: partial.platform,
+          url: partial.url
+        })
+        .eq('id', id)
+        .select()
+        .single();
+
+      if (!error && data) {
+        return data as ContentItem;
+      }
+    }
+
+    const index = this.contentList.findIndex(c => c.id === id);
+    if (index !== -1) {
+      this.contentList[index] = {
+        ...this.contentList[index],
+        ...(partial.title ? { title: partial.title } : {}),
+        ...(partial.platform ? { platform: partial.platform } : {}),
+        ...(partial.url ? { url: partial.url } : {})
+      };
+      return this.contentList[index];
+    }
+    return null;
   }
 
   async deleteContent(id: string): Promise<boolean> {

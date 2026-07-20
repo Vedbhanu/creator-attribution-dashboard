@@ -3,17 +3,24 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { ContentItem, ContentAttributionMetrics } from '@/types/database';
-import { Search, ExternalLink, Copy, Check, Trash2, Plus, Sparkles, QrCode, FileText } from 'lucide-react';
+import { Search, ExternalLink, Copy, Check, Trash2, Plus, Sparkles, QrCode, FileText, Pencil, Save, X } from 'lucide-react';
 import { getAppDomain } from '@/lib/utils';
+import { useToast } from '@/components/ui/toast';
 
 export function ContentList() {
+  const { showToast } = useToast();
   const [metrics, setMetrics] = useState<ContentAttributionMetrics[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedPlatform, setSelectedPlatform] = useState<string>('All');
-  const [copiedSlug, setCopiedSlug] = useState<string | null>(null);
-  const [copiedSnippet, setCopiedSnippet] = useState<string | null>(null);
+  
+  // Modals & Editing
   const [qrModalUrl, setQrModalUrl] = useState<string | null>(null);
+  const [editingItem, setEditingItem] = useState<ContentItem | null>(null);
+  const [editTitle, setEditTitle] = useState('');
+  const [editPlatform, setEditPlatform] = useState('');
+  const [editUrl, setEditUrl] = useState('');
+  const [savingEdit, setSavingEdit] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [domain, setDomain] = useState('');
 
@@ -39,15 +46,64 @@ export function ContentList() {
   const handleCopyLink = (slug: string) => {
     const fullUrl = `${domain}/r/${slug}`;
     navigator.clipboard.writeText(fullUrl);
-    setCopiedSlug(slug);
-    setTimeout(() => setCopiedSlug(null), 2000);
+    showToast('Short tracking link copied to clipboard!');
   };
 
   const handleCopySnippet = (slug: string, title: string) => {
     const snippet = `🔥 ${title}\nCheck out the free resource here 👉 ${domain}/r/${slug}`;
     navigator.clipboard.writeText(snippet);
-    setCopiedSnippet(slug);
-    setTimeout(() => setCopiedSnippet(null), 2000);
+    showToast('YouTube description snippet copied to clipboard!');
+  };
+
+  const handleOpenEdit = (item: ContentItem) => {
+    setEditingItem(item);
+    setEditTitle(item.title);
+    setEditPlatform(item.platform);
+    setEditUrl(item.url);
+  };
+
+  const handleSaveEdit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingItem) return;
+    setSavingEdit(true);
+
+    try {
+      const res = await fetch(`/api/content/${editingItem.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          title: editTitle,
+          platform: editPlatform,
+          url: editUrl
+        })
+      });
+
+      const json = await res.json();
+      if (json.success && json.data) {
+        setMetrics(prev => prev.map(m => {
+          if (m.content.id === editingItem.id) {
+            return {
+              ...m,
+              content: {
+                ...m.content,
+                title: editTitle,
+                platform: editPlatform as any,
+                url: editUrl
+              }
+            };
+          }
+          return m;
+        }));
+        showToast('Content item updated successfully! (Slug preserved)', 'success');
+        setEditingItem(null);
+      } else {
+        showToast('Failed to update: ' + json.error, 'error');
+      }
+    } catch (err: any) {
+      showToast('Error updating content: ' + err.message, 'error');
+    } finally {
+      setSavingEdit(false);
+    }
   };
 
   const handleDelete = async (id: string) => {
@@ -59,6 +115,7 @@ export function ContentList() {
       const res = await fetch(`/api/content/${id}`, { method: 'DELETE' });
       if (res.ok) {
         setMetrics(prev => prev.filter(m => m.content.id !== id));
+        showToast('Content item deleted.', 'info');
       }
     } catch (err) {
       console.error('Failed to delete content:', err);
@@ -172,7 +229,7 @@ export function ContentList() {
                       title="Copy Short Link"
                       className="ml-1 text-[#111111] hover:text-[#EC4899]"
                     >
-                      {copiedSlug === content.tracking_slug ? <Check className="w-4 h-4 text-[#EC4899]" /> : <Copy className="w-4 h-4" />}
+                      <Copy className="w-4 h-4" />
                     </button>
                   </div>
 
@@ -180,8 +237,8 @@ export function ContentList() {
                     onClick={() => handleCopySnippet(content.tracking_slug, content.title)}
                     className="px-3 py-1.5 rounded-xl bg-[#F6D74C] hover:bg-white text-[#111111] border-2 border-[#111111] font-extrabold text-[11px] inline-flex items-center gap-1 shadow-[2px_2px_0px_#111111]"
                   >
-                    {copiedSnippet === content.tracking_slug ? <Check className="w-3.5 h-3.5 text-[#EC4899]" /> : <FileText className="w-3.5 h-3.5 text-[#EC4899]" />}
-                    <span>{copiedSnippet === content.tracking_slug ? 'Snippet Copied!' : 'Copy Snippet'}</span>
+                    <FileText className="w-3.5 h-3.5 text-[#EC4899]" />
+                    <span>Copy Snippet</span>
                   </button>
 
                   <button
@@ -194,7 +251,7 @@ export function ContentList() {
                 </div>
               </div>
 
-              {/* Attribution Metrics Pill Matrix */}
+              {/* Attribution Metrics Pill Matrix & Actions */}
               <div className="flex items-center gap-3 border-t-2 lg:border-t-0 lg:border-l-2 border-[#111111] pt-4 lg:pt-0 lg:pl-6 w-full lg:w-auto justify-between lg:justify-end">
                 <div className="text-center px-4 py-2 rounded-xl bg-[#F7F4EC] border-2 border-[#111111] min-w-[70px]">
                   <div className="text-[10px] text-[#4B4B4B] font-extrabold uppercase">Visitors</div>
@@ -216,17 +273,113 @@ export function ContentList() {
                   <div className="text-lg font-black text-white">${total_revenue.toFixed(2)}</div>
                 </div>
 
-                <button
-                  onClick={() => handleDelete(content.id)}
-                  disabled={deletingId === content.id}
-                  className="p-2.5 text-[#111111] hover:text-white hover:bg-[#EC4899] rounded-xl border-2 border-[#111111] transition-all ml-1 shadow-[2px_2px_0px_#111111]"
-                  title="Delete Content Item"
-                >
-                  <Trash2 className="w-4 h-4" />
-                </button>
+                {/* Edit & Delete Action Buttons */}
+                <div className="flex items-center gap-1.5 ml-1">
+                  <button
+                    onClick={() => handleOpenEdit(content)}
+                    className="p-2.5 text-[#111111] bg-[#F6D74C] hover:bg-white rounded-xl border-2 border-[#111111] transition-all shadow-[2px_2px_0px_#111111]"
+                    title="Edit Content Item"
+                  >
+                    <Pencil className="w-4 h-4 text-[#111111]" />
+                  </button>
+
+                  <button
+                    onClick={() => handleDelete(content.id)}
+                    disabled={deletingId === content.id}
+                    className="p-2.5 text-[#111111] hover:text-white hover:bg-[#EC4899] rounded-xl border-2 border-[#111111] transition-all shadow-[2px_2px_0px_#111111]"
+                    title="Delete Content Item"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                </div>
               </div>
             </div>
           ))}
+        </div>
+      )}
+
+      {/* Edit Content Lightbox Modal */}
+      {editingItem && (
+        <div className="fixed inset-0 z-50 bg-[#111111]/60 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white rounded-3xl border-3 border-[#111111] p-8 max-w-lg w-full space-y-6 shadow-[8px_8px_0px_#111111]">
+            <div className="flex items-center justify-between border-b-2 border-[#111111] pb-3">
+              <div className="flex items-center gap-2">
+                <Pencil className="w-5 h-5 text-[#EC4899]" />
+                <h3 className="text-lg font-black text-[#111111]">Edit Content Item</h3>
+              </div>
+              <button
+                onClick={() => setEditingItem(null)}
+                className="text-[#111111] hover:text-[#EC4899] font-black text-sm"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <form onSubmit={handleSaveEdit} className="space-y-4">
+              <div className="space-y-1.5">
+                <label className="text-xs font-extrabold text-[#111111]">Content Title *</label>
+                <input
+                  type="text"
+                  required
+                  value={editTitle}
+                  onChange={(e) => setEditTitle(e.target.value)}
+                  className="w-full px-4 py-3 rounded-xl bg-[#F7F4EC] border-2 border-[#111111] text-xs font-bold text-[#111111] focus:outline-none focus:bg-white"
+                />
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="text-xs font-extrabold text-[#111111]">Platform *</label>
+                <select
+                  value={editPlatform}
+                  onChange={(e) => setEditPlatform(e.target.value)}
+                  className="w-full px-4 py-3 rounded-xl bg-[#F7F4EC] border-2 border-[#111111] text-xs font-bold text-[#111111] focus:outline-none focus:bg-white"
+                >
+                  <option value="YouTube">YouTube</option>
+                  <option value="Twitter/X">Twitter/X</option>
+                  <option value="LinkedIn">LinkedIn</option>
+                  <option value="Newsletter">Newsletter</option>
+                  <option value="Instagram">Instagram</option>
+                  <option value="Podcast">Podcast</option>
+                  <option value="Blog">Blog</option>
+                </select>
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="text-xs font-extrabold text-[#111111]">Target URL *</label>
+                <input
+                  type="url"
+                  required
+                  value={editUrl}
+                  onChange={(e) => setEditUrl(e.target.value)}
+                  className="w-full px-4 py-3 rounded-xl bg-[#F7F4EC] border-2 border-[#111111] text-xs font-bold text-[#111111] focus:outline-none focus:bg-white"
+                />
+              </div>
+
+              <div className="space-y-1.5 p-3 rounded-xl bg-[#F7F4EC] border-2 border-[#111111]">
+                <label className="text-[11px] font-extrabold text-[#4B4B4B] uppercase">Tracking Slug (Immutable)</label>
+                <p className="text-xs font-mono font-bold text-[#4A4FE0]">/r/{editingItem.tracking_slug}</p>
+                <p className="text-[10px] font-bold text-[#8A8A8A]">Slugs cannot be changed after creation so existing live links never break.</p>
+              </div>
+
+              <div className="flex gap-3 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setEditingItem(null)}
+                  className="w-1/2 py-3.5 rounded-xl bg-[#F7F4EC] text-[#111111] font-extrabold text-xs border-2 border-[#111111]"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={savingEdit}
+                  className="w-1/2 py-3.5 rounded-xl bg-[#EC4899] hover:bg-[#D6317C] text-white font-extrabold text-xs border-2 border-[#111111] shadow-[2px_2px_0px_#111111] flex items-center justify-center gap-1.5 disabled:opacity-50"
+                >
+                  <Save className="w-4 h-4" />
+                  <span>{savingEdit ? 'Saving...' : 'Save Changes'}</span>
+                </button>
+              </div>
+            </form>
+          </div>
         </div>
       )}
 
@@ -240,7 +393,7 @@ export function ContentList() {
                 onClick={() => setQrModalUrl(null)}
                 className="text-[#111111] hover:text-[#EC4899] font-black text-sm"
               >
-                ✕
+                <X className="w-5 h-5" />
               </button>
             </div>
 

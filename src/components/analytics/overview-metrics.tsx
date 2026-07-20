@@ -5,12 +5,15 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { DollarSign, Eye, Users, TrendingUp, Sparkles, Plus, ArrowRight, Zap, Check } from 'lucide-react';
 import { AnalyticsSummary } from '@/types/database';
+import { generateShortSlug } from '@/lib/utils';
+import { useToast } from '@/components/ui/toast';
 
 export function OverviewMetrics({ summary }: { summary: AnalyticsSummary }) {
   const router = useRouter();
+  const { showToast } = useToast();
   const [quickUrl, setQuickUrl] = useState('');
+  const [customTitle, setCustomTitle] = useState('');
   const [creating, setCreating] = useState(false);
-  const [copiedLink, setCopiedLink] = useState<string | null>(null);
 
   const handleQuickCreate = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -18,37 +21,71 @@ export function OverviewMetrics({ summary }: { summary: AnalyticsSummary }) {
     setCreating(true);
 
     try {
-      // Auto-detect platform and clean slug
+      // 1. Auto-detect platform and platform prefix
       let platform = 'YouTube';
-      if (quickUrl.includes('twitter.com') || quickUrl.includes('x.com')) platform = 'Twitter/X';
-      else if (quickUrl.includes('linkedin.com')) platform = 'LinkedIn';
-      else if (quickUrl.includes('substack.com')) platform = 'Newsletter';
+      let prefix = 'yt-';
+      if (quickUrl.includes('twitter.com') || quickUrl.includes('x.com')) {
+        platform = 'Twitter/X';
+        prefix = 'tw-';
+      } else if (quickUrl.includes('linkedin.com')) {
+        platform = 'LinkedIn';
+        prefix = 'li-';
+      } else if (quickUrl.includes('substack.com')) {
+        platform = 'Newsletter';
+        prefix = 'nl-';
+      } else if (quickUrl.includes('instagram.com')) {
+        platform = 'Instagram';
+        prefix = 'ig-';
+      }
 
-      const title = 'Quick Post: ' + new Date().toLocaleDateString();
-      const slug = 'q-' + Math.random().toString(36).substring(2, 8);
+      // 2. Title Resolution Strategy (YouTube oEmbed -> Custom Title -> Default)
+      let resolvedTitle = customTitle.trim();
+
+      if (!resolvedTitle && platform === 'YouTube') {
+        try {
+          const oembedRes = await fetch(`https://www.youtube.com/oembed?url=${encodeURIComponent(quickUrl)}&format=json`);
+          if (oembedRes.ok) {
+            const oembedData = await oembedRes.json();
+            if (oembedData && oembedData.title) {
+              resolvedTitle = oembedData.title;
+            }
+          }
+        } catch (oembedErr) {
+          console.log('YouTube oEmbed fetch skipped/failed, using fallback title.');
+        }
+      }
+
+      if (!resolvedTitle) {
+        resolvedTitle = `Untitled ${platform} Post`;
+      }
+
+      // 3. Clean Slug Generation (Readable slug instead of junk q-xxxxx)
+      const baseSlug = generateShortSlug(resolvedTitle);
+      const tracking_slug = prefix + baseSlug;
 
       const res = await fetch('/api/content', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          title,
+          title: resolvedTitle,
           platform,
           url: quickUrl,
-          tracking_slug: slug
+          tracking_slug
         })
       });
 
       const json = await res.json();
       if (json.success) {
-        const fullLink = `${window.location.origin}/r/${slug}`;
+        const fullLink = `${window.location.origin}/r/${tracking_slug}`;
         navigator.clipboard.writeText(fullLink);
-        setCopiedLink(fullLink);
+        showToast('⚡ Short link generated & copied to clipboard!', 'success');
         setQuickUrl('');
-        setTimeout(() => setCopiedLink(null), 4000);
+        setCustomTitle('');
         router.refresh();
       }
-    } catch (err) {
+    } catch (err: any) {
       console.error('Quick link creation failed:', err);
+      showToast('Failed to create quick link: ' + err.message, 'error');
     } finally {
       setCreating(false);
     }
@@ -56,35 +93,46 @@ export function OverviewMetrics({ summary }: { summary: AnalyticsSummary }) {
 
   return (
     <div className="space-y-5">
-      {/* 1-Click Top Dashboard Quick Bar */}
-      <div className="p-4 rounded-3xl bg-white border-3 border-[#111111] shadow-[6px_6px_0px_#111111] space-y-2">
-        <form onSubmit={handleQuickCreate} className="flex flex-col sm:flex-row items-center gap-3">
-          <div className="relative flex-1 w-full">
-            <Zap className="w-4 h-4 absolute left-3.5 top-3.5 text-[#EC4899]" />
+      {/* 1-Click Top Dashboard Quick Bar (Clean Title & oEmbed Auto-Fetch) */}
+      <div className="p-5 rounded-3xl bg-white border-3 border-[#111111] shadow-[6px_6px_0px_#111111] space-y-3">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Zap className="w-4 h-4 text-[#EC4899]" />
+            <span className="text-xs font-black text-[#111111]">1-Click Quick Link Generator</span>
+          </div>
+          <span className="text-[11px] font-bold text-[#4B4B4B]">Auto-scrapes YouTube titles</span>
+        </div>
+
+        <form onSubmit={handleQuickCreate} className="grid grid-cols-1 md:grid-cols-12 gap-3">
+          <div className="md:col-span-6 relative">
             <input
               type="url"
               required
-              placeholder="Paste YouTube or post URL to generate 1-click short link..."
+              placeholder="Paste YouTube, X, or post URL..."
               value={quickUrl}
               onChange={(e) => setQuickUrl(e.target.value)}
-              className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-[#F7F4EC] border-2 border-[#111111] text-xs font-bold text-[#111111] focus:outline-none focus:bg-white transition-all placeholder:text-[#8A8A8A]"
+              className="w-full px-4 py-2.5 rounded-xl bg-[#F7F4EC] border-2 border-[#111111] text-xs font-bold text-[#111111] focus:outline-none focus:bg-white transition-all placeholder:text-[#8A8A8A]"
             />
           </div>
+
+          <div className="md:col-span-4 relative">
+            <input
+              type="text"
+              placeholder="Optional title (Auto-detects if blank)..."
+              value={customTitle}
+              onChange={(e) => setCustomTitle(e.target.value)}
+              className="w-full px-4 py-2.5 rounded-xl bg-[#F7F4EC] border-2 border-[#111111] text-xs font-bold text-[#111111] focus:outline-none focus:bg-white transition-all placeholder:text-[#8A8A8A]"
+            />
+          </div>
+
           <button
             type="submit"
             disabled={creating}
-            className="w-full sm:w-auto px-6 py-2.5 rounded-xl bg-[#EC4899] hover:bg-[#D6317C] text-white text-xs font-black border-2 border-[#111111] shadow-[3px_3px_0px_#111111] active:translate-x-[1px] active:translate-y-[1px] transition-all whitespace-nowrap flex items-center justify-center gap-1.5 disabled:opacity-50"
+            className="md:col-span-2 px-4 py-2.5 rounded-xl bg-[#EC4899] hover:bg-[#D6317C] text-white text-xs font-black border-2 border-[#111111] shadow-[3px_3px_0px_#111111] active:translate-x-[1px] active:translate-y-[1px] transition-all whitespace-nowrap flex items-center justify-center gap-1.5 disabled:opacity-50"
           >
-            <span>{creating ? 'Generating...' : '⚡ Generate Smart Link'}</span>
+            <span>{creating ? 'Fetching...' : '⚡ Create Link'}</span>
           </button>
         </form>
-
-        {copiedLink && (
-          <div className="p-2.5 rounded-xl bg-[#F6D74C] border-2 border-[#111111] text-xs font-extrabold text-[#111111] flex items-center gap-2">
-            <Check className="w-4 h-4 text-[#EC4899]" />
-            <span>Short Link Generated & Copied to Clipboard! <code className="font-mono text-[#4A4FE0]">{copiedLink}</code></span>
-          </div>
-        )}
       </div>
 
       {summary.total_content_items === 0 && (

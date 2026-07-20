@@ -4,17 +4,25 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { ContentAttributionMetrics, Lead, Sale } from '@/types/database';
-import { ArrowLeft, Copy, Check, ExternalLink, Users, DollarSign, TrendingUp, Sparkles, Eye, FileText, Calendar, CheckCircle2, Play, Zap, QrCode } from 'lucide-react';
+import { ArrowLeft, Copy, Check, ExternalLink, Users, DollarSign, TrendingUp, Sparkles, Eye, FileText, Calendar, CheckCircle2, Play, Zap, QrCode, Pencil, Save, X } from 'lucide-react';
 import { getAppDomain } from '@/lib/utils';
+import { useToast } from '@/components/ui/toast';
 
 export default function ContentDetailPage({ params }: { params: { id: string } }) {
   const router = useRouter();
+  const { showToast } = useToast();
   const [metrics, setMetrics] = useState<ContentAttributionMetrics | null>(null);
   const [leads, setLeads] = useState<Lead[]>([]);
   const [sales, setSales] = useState<Sale[]>([]);
   const [loading, setLoading] = useState(true);
-  const [copied, setCopied] = useState<string | null>(null);
   const [qrModalOpen, setQrModalOpen] = useState(false);
+
+  // Edit Modal State
+  const [editing, setEditing] = useState(false);
+  const [editTitle, setEditTitle] = useState('');
+  const [editPlatform, setEditPlatform] = useState('');
+  const [editUrl, setEditUrl] = useState('');
+  const [savingEdit, setSavingEdit] = useState(false);
   const [domain, setDomain] = useState('');
 
   useEffect(() => {
@@ -36,6 +44,9 @@ export default function ContentDetailPage({ params }: { params: { id: string } }
 
       if (detailJson.success && detailJson.metrics) {
         setMetrics(detailJson.metrics);
+        setEditTitle(detailJson.metrics.content.title);
+        setEditPlatform(detailJson.metrics.content.platform);
+        setEditUrl(detailJson.metrics.content.url);
       }
 
       if (leadsJson.success && leadsJson.data) {
@@ -55,16 +66,53 @@ export default function ContentDetailPage({ params }: { params: { id: string } }
 
   const copyToClipboard = (text: string, label: string) => {
     navigator.clipboard.writeText(text);
-    setCopied(label);
-    setTimeout(() => setCopied(null), 2000);
+    showToast(`${label} copied to clipboard!`);
   };
 
   const handleCopySnippet = () => {
     if (!metrics) return;
     const snippet = `🔥 ${metrics.content.title}\nCheck out the free resource here 👉 ${domain}/r/${metrics.content.tracking_slug}`;
     navigator.clipboard.writeText(snippet);
-    setCopied('snippet');
-    setTimeout(() => setCopied(null), 2000);
+    showToast('YouTube description snippet copied to clipboard!');
+  };
+
+  const handleSaveEdit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!metrics) return;
+    setSavingEdit(true);
+
+    try {
+      const res = await fetch(`/api/content/${params.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          title: editTitle,
+          platform: editPlatform,
+          url: editUrl
+        })
+      });
+
+      const json = await res.json();
+      if (json.success && json.data) {
+        setMetrics(prev => prev ? {
+          ...prev,
+          content: {
+            ...prev.content,
+            title: editTitle,
+            platform: editPlatform as any,
+            url: editUrl
+          }
+        } : null);
+        showToast('Video details updated! (Tracking link preserved)', 'success');
+        setEditing(false);
+      } else {
+        showToast('Failed to update: ' + json.error, 'error');
+      }
+    } catch (err: any) {
+      showToast('Error updating details: ' + err.message, 'error');
+    } finally {
+      setSavingEdit(false);
+    }
   };
 
   // Extract YouTube Thumbnail if applicable
@@ -151,11 +199,19 @@ export default function ContentDetailPage({ params }: { params: { id: string } }
 
             <div className="flex flex-wrap items-center gap-3">
               <button
-                onClick={handleCopySnippet}
+                onClick={() => setEditing(true)}
                 className="px-3 py-1.5 rounded-xl bg-[#F6D74C] text-[#111111] border-2 border-[#111111] text-xs font-black shadow-[2px_2px_0px_#111111] hover:bg-white transition-all inline-flex items-center gap-1"
               >
-                {copied === 'snippet' ? <Check className="w-3.5 h-3.5 text-[#EC4899]" /> : <FileText className="w-3.5 h-3.5 text-[#EC4899]" />}
-                <span>{copied === 'snippet' ? 'Snippet Copied!' : '📋 Copy YouTube Snippet'}</span>
+                <Pencil className="w-3.5 h-3.5 text-[#111111]" />
+                <span>Edit Video Info</span>
+              </button>
+
+              <button
+                onClick={handleCopySnippet}
+                className="px-3 py-1.5 rounded-xl bg-white text-[#111111] border-2 border-[#111111] text-xs font-black shadow-[2px_2px_0px_#111111] hover:bg-[#F7F4EC] transition-all inline-flex items-center gap-1"
+              >
+                <FileText className="w-3.5 h-3.5 text-[#EC4899]" />
+                <span>📋 Copy YouTube Snippet</span>
               </button>
 
               <button
@@ -184,11 +240,11 @@ export default function ContentDetailPage({ params }: { params: { id: string } }
             <div className="flex items-center justify-between text-xs font-extrabold text-[#111111]">
               <span>Short Tracking Link (Paste in Bio / Desc)</span>
               <button
-                onClick={() => copyToClipboard(trackingUrl, 'tracking')}
+                onClick={() => copyToClipboard(trackingUrl, 'Short tracking link')}
                 className="text-[#4A4FE0] hover:underline inline-flex items-center gap-1 text-[11px] font-black"
               >
-                {copied === 'tracking' ? <Check className="w-3.5 h-3.5 text-[#EC4899]" /> : <Copy className="w-3.5 h-3.5" />}
-                {copied === 'tracking' ? 'Copied!' : 'Copy Link'}
+                <Copy className="w-3.5 h-3.5" />
+                <span>Copy Link</span>
               </button>
             </div>
             <p className="text-xs font-mono font-bold text-[#4A4FE0] truncate">{trackingUrl}</p>
@@ -198,11 +254,11 @@ export default function ContentDetailPage({ params }: { params: { id: string } }
             <div className="flex items-center justify-between text-xs font-extrabold text-[#111111]">
               <span>Hosted Lead Capture Form</span>
               <button
-                onClick={() => copyToClipboard(leadFormUrl, 'lead')}
+                onClick={() => copyToClipboard(leadFormUrl, 'Lead form link')}
                 className="text-[#EC4899] hover:underline inline-flex items-center gap-1 text-[11px] font-black"
               >
-                {copied === 'lead' ? <Check className="w-3.5 h-3.5 text-[#EC4899]" /> : <Copy className="w-3.5 h-3.5" />}
-                {copied === 'lead' ? 'Copied!' : 'Copy Link'}
+                <Copy className="w-3.5 h-3.5" />
+                <span>Copy Link</span>
               </button>
             </div>
             <p className="text-xs font-mono font-bold text-[#EC4899] truncate">{leadFormUrl}</p>
@@ -210,12 +266,11 @@ export default function ContentDetailPage({ params }: { params: { id: string } }
         </div>
       </div>
 
-      {/* 4 CORE REVENUE METRICS (Trace P&L Grid Style) */}
+      {/* 4 CORE REVENUE METRICS */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
         <div className="p-6 rounded-2xl bg-[#EC4899] text-white border-2.5 border-[#111111] shadow-[4px_4px_0px_#111111] space-y-2">
           <div className="flex items-center justify-between text-xs font-extrabold uppercase tracking-wider text-white">
             <span>💲 Total Revenue</span>
-            <span className="px-2 py-0.5 rounded-full bg-white text-[#111111] text-[10px] font-black">+28%</span>
           </div>
           <div className="text-3xl font-black text-white">${total_revenue.toFixed(2)}</div>
           <p className="text-[11px] text-white/90 font-bold">Attributed back to this video</p>
@@ -224,7 +279,6 @@ export default function ContentDetailPage({ params }: { params: { id: string } }
         <div className="p-6 rounded-2xl bg-white text-[#111111] border-2.5 border-[#111111] shadow-[4px_4px_0px_#111111] space-y-2">
           <div className="flex items-center justify-between text-xs font-extrabold text-[#4B4B4B] uppercase tracking-wider">
             <span>🖱️ Unique Clicks</span>
-            <span className="px-2 py-0.5 rounded-full bg-[#F6D74C] text-[#111111] text-[10px] font-black">+11%</span>
           </div>
           <div className="text-3xl font-black text-[#111111]">{visitors_count}</div>
           <p className="text-[11px] text-[#4B4B4B] font-semibold">Cookie tracking clicks logged</p>
@@ -324,17 +378,96 @@ export default function ContentDetailPage({ params }: { params: { id: string } }
         </div>
       </div>
 
+      {/* Edit Content Modal */}
+      {editing && (
+        <div className="fixed inset-0 z-50 bg-[#111111]/60 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white rounded-3xl border-3 border-[#111111] p-8 max-w-lg w-full space-y-6 shadow-[8px_8px_0px_#111111]">
+            <div className="flex items-center justify-between border-b-2 border-[#111111] pb-3">
+              <div className="flex items-center gap-2">
+                <Pencil className="w-5 h-5 text-[#EC4899]" />
+                <h3 className="text-lg font-black text-[#111111]">Edit Video Information</h3>
+              </div>
+              <button onClick={() => setEditing(false)} className="text-[#111111] hover:text-[#EC4899] font-black text-sm">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <form onSubmit={handleSaveEdit} className="space-y-4">
+              <div className="space-y-1.5">
+                <label className="text-xs font-extrabold text-[#111111]">Video Title *</label>
+                <input
+                  type="text"
+                  required
+                  value={editTitle}
+                  onChange={(e) => setEditTitle(e.target.value)}
+                  className="w-full px-4 py-3 rounded-xl bg-[#F7F4EC] border-2 border-[#111111] text-xs font-bold text-[#111111] focus:outline-none focus:bg-white"
+                />
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="text-xs font-extrabold text-[#111111]">Platform *</label>
+                <select
+                  value={editPlatform}
+                  onChange={(e) => setEditPlatform(e.target.value)}
+                  className="w-full px-4 py-3 rounded-xl bg-[#F7F4EC] border-2 border-[#111111] text-xs font-bold text-[#111111] focus:outline-none focus:bg-white"
+                >
+                  <option value="YouTube">YouTube</option>
+                  <option value="Twitter/X">Twitter/X</option>
+                  <option value="LinkedIn">LinkedIn</option>
+                  <option value="Newsletter">Newsletter</option>
+                  <option value="Instagram">Instagram</option>
+                  <option value="Podcast">Podcast</option>
+                  <option value="Blog">Blog</option>
+                </select>
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="text-xs font-extrabold text-[#111111]">Target URL *</label>
+                <input
+                  type="url"
+                  required
+                  value={editUrl}
+                  onChange={(e) => setEditUrl(e.target.value)}
+                  className="w-full px-4 py-3 rounded-xl bg-[#F7F4EC] border-2 border-[#111111] text-xs font-bold text-[#111111] focus:outline-none focus:bg-white"
+                />
+              </div>
+
+              <div className="space-y-1.5 p-3 rounded-xl bg-[#F7F4EC] border-2 border-[#111111]">
+                <label className="text-[11px] font-extrabold text-[#4B4B4B] uppercase">Tracking Slug (Immutable)</label>
+                <p className="text-xs font-mono font-bold text-[#4A4FE0]">/r/{content.tracking_slug}</p>
+                <p className="text-[10px] font-bold text-[#8A8A8A]">Slugs cannot be changed after creation so existing live links never break.</p>
+              </div>
+
+              <div className="flex gap-3 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setEditing(false)}
+                  className="w-1/2 py-3.5 rounded-xl bg-[#F7F4EC] text-[#111111] font-extrabold text-xs border-2 border-[#111111]"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={savingEdit}
+                  className="w-1/2 py-3.5 rounded-xl bg-[#EC4899] hover:bg-[#D6317C] text-white font-extrabold text-xs border-2 border-[#111111] shadow-[2px_2px_0px_#111111] flex items-center justify-center gap-1.5 disabled:opacity-50"
+                >
+                  <Save className="w-4 h-4" />
+                  <span>{savingEdit ? 'Saving...' : 'Save Changes'}</span>
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
       {/* QR Code Lightbox Modal */}
       {qrModalOpen && (
         <div className="fixed inset-0 z-50 bg-[#111111]/60 backdrop-blur-sm flex items-center justify-center p-4">
           <div className="bg-white rounded-3xl border-3 border-[#111111] p-8 max-w-sm w-full text-center space-y-6 shadow-[8px_8px_0px_#111111]">
             <div className="flex items-center justify-between border-b-2 border-[#111111] pb-3">
               <h3 className="text-lg font-black text-[#111111]">📷 Tracking QR Code</h3>
-              <button
-                onClick={() => setQrModalOpen(false)}
-                className="text-[#111111] hover:text-[#EC4899] font-black text-sm"
-              >
-                ✕
+              <button onClick={() => setQrModalOpen(false)} className="text-[#111111] hover:text-[#EC4899] font-black text-sm">
+                <X className="w-5 h-5" />
               </button>
             </div>
 

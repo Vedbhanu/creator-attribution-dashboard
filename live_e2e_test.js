@@ -57,24 +57,26 @@ async function runLiveE2ETest() {
     console.log('\n--- PHASE 3: First-Time Visitor Click & Cookie Log ---');
     const trackingUrl = `${BASE_URL}/r/${createdSlug}?utm_source=youtube&utm_medium=description&utm_campaign=live_test`;
     
-    // Warm up dev route compilation if needed
     let res = await fetch(trackingUrl, { redirect: 'manual' });
-    if (res.status === 307) {
+    let setCookies = res.headers.getSetCookie ? res.headers.getSetCookie() : [res.headers.get('set-cookie') || ''];
+    let hasCookie = setCookies.some(c => c && c.includes('creator_visitor_id')) || Boolean(res.headers.get('set-cookie'));
+
+    if (!hasCookie) {
+      await new Promise(r => setTimeout(r, 600));
       res = await fetch(trackingUrl, { redirect: 'manual' });
+      setCookies = res.headers.getSetCookie ? res.headers.getSetCookie() : [res.headers.get('set-cookie') || ''];
+      hasCookie = setCookies.some(c => c && c.includes('creator_visitor_id')) || Boolean(res.headers.get('set-cookie'));
     }
 
     const location = res.headers.get('location');
-    const setCookies = res.headers.getSetCookie ? res.headers.getSetCookie() : [res.headers.get('set-cookie') || ''];
-    
-    const is302 = res.status === 302 || res.status === 307;
-    const hasCookie = setCookies.some(c => c.includes('creator_visitor_id')) || Boolean(res.headers.get('set-cookie'));
+    const isRedirect = res.status === 302 || res.status === 307;
     
     results.push({
       step: '3. Short Link Click & Cookie Logging',
-      status: (is302 && hasCookie) ? 'PASS' : 'FAIL',
+      status: (isRedirect && hasCookie) ? 'PASS' : 'FAIL',
       details: `HTTP ${res.status} Redirect to: ${location} | Cookie set: ${hasCookie}`
     });
-    console.log(`[${is302 && hasCookie ? 'PASS' : 'FAIL'}] Visitor clicked link. 302 Redirected to target URL with 30-day tracking cookie.`);
+    console.log(`[${isRedirect && hasCookie ? 'PASS' : 'FAIL'}] Visitor clicked link. 302 Redirected to target URL with 30-day tracking cookie.`);
   } catch (err) {
     results.push({ step: '3. Short Link Click & Cookie Logging', status: 'FAIL', details: err.message });
   }
