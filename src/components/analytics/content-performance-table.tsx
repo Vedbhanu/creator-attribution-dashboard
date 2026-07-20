@@ -2,9 +2,24 @@
 
 import Link from 'next/link';
 import { ContentAttributionMetrics } from '@/types/database';
-import { Trophy, ArrowUpRight } from 'lucide-react';
+import { Trophy, ArrowUpRight, Download } from 'lucide-react';
+import { exportToCSV } from '@/lib/export';
 
 export function ContentPerformanceTable({ rankings }: { rankings: ContentAttributionMetrics[] }) {
+  const handleExport = () => {
+    const data = rankings.map(({ content, visitors_count, leads_count, sales_count, total_revenue, visitor_to_lead_cr }) => ({
+      Title: content.title,
+      Platform: content.platform,
+      Tracking_Slug: content.tracking_slug,
+      Visitors: visitors_count,
+      Leads: leads_count,
+      Sales: sales_count,
+      Conversion_Rate: `${visitor_to_lead_cr}%`,
+      Revenue: `$${total_revenue.toFixed(2)}`,
+    }));
+    exportToCSV(data, 'creator_attribution_revenue_report');
+  };
+
   return (
     <div className="p-6 rounded-2xl bg-white border-2.5 border-[#111111] shadow-[4px_4px_0px_#111111] space-y-5">
       <div className="flex items-center justify-between border-b-2 border-[#111111] pb-4">
@@ -16,12 +31,24 @@ export function ContentPerformanceTable({ rankings }: { rankings: ContentAttribu
           <p className="text-xs text-[#4B4B4B] font-semibold mt-0.5">Ranked list answering: Which content items generate your revenue?</p>
         </div>
 
-        <Link
-          href="/content"
-          className="px-3 py-1.5 rounded-xl bg-[#F6D74C] text-[#111111] font-extrabold text-xs border-2 border-[#111111] shadow-[2px_2px_0px_#111111] hover:translate-x-[1px] hover:translate-y-[1px] inline-flex items-center gap-1"
-        >
-          View All Content <ArrowUpRight className="w-3.5 h-3.5" />
-        </Link>
+        <div className="flex items-center gap-3">
+          {rankings.length > 0 && (
+            <button
+              onClick={handleExport}
+              className="px-3 py-1.5 rounded-xl bg-white text-[#111111] font-extrabold text-xs border-2 border-[#111111] shadow-[2px_2px_0px_#111111] hover:bg-[#F7F4EC] inline-flex items-center gap-1.5"
+            >
+              <Download className="w-3.5 h-3.5 text-[#4A4FE0]" />
+              Export CSV
+            </button>
+          )}
+
+          <Link
+            href="/content"
+            className="px-3 py-1.5 rounded-xl bg-[#F6D74C] text-[#111111] font-extrabold text-xs border-2 border-[#111111] shadow-[2px_2px_0px_#111111] hover:translate-x-[1px] hover:translate-y-[1px] inline-flex items-center gap-1"
+          >
+            View All Content <ArrowUpRight className="w-3.5 h-3.5" />
+          </Link>
+        </div>
       </div>
 
       {rankings.length === 0 ? (
