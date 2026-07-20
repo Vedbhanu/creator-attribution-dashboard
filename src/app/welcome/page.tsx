@@ -76,7 +76,7 @@ export default function LandingPage() {
             </Link>
 
             <a
-              href="https://cal.com/ved-automation-contentleverage/creator-attribution?overlayCalendar=true"
+              href="https://cal.com/ved-automation-contentleverage/creator-attribution"
               target="_blank"
               rel="noopener noreferrer"
               className="w-full sm:w-auto px-7 py-4 rounded-2xl bg-white hover:bg-[#F7F4EC] text-[#111111] font-extrabold text-base border-3 border-[#111111] shadow-[4px_4px_0px_#111111] active:translate-x-[2px] active:translate-y-[2px] active:shadow-[2px_2px_0px_#111111] transition-all flex items-center justify-center gap-2"
@@ -106,7 +106,7 @@ export default function LandingPage() {
                 <span className="w-3 h-3 rounded-full bg-[#F6D74C] border border-[#111111]"></span>
                 <span className="w-3 h-3 rounded-full bg-[#4A4FE0] border border-[#111111]"></span>
               </div>
-              <span className="text-xs font-mono font-bold text-[#111111]">attrib.vedbhanu.com/dashboard</span>
+              <span className="text-xs font-mono font-bold text-[#111111]">creator-attribution-dashboard.vercel.app/dashboard</span>
               <span className="text-xs font-bold text-[#EC4899] group-hover:underline">Click to Open Demo →</span>
             </div>
 
@@ -274,7 +274,7 @@ export default function LandingPage() {
 
           <div className="pt-2">
             <a
-              href="https://cal.com/ved-automation-contentleverage/creator-attribution?overlayCalendar=true"
+              href="https://cal.com/ved-automation-contentleverage/creator-attribution"
               target="_blank"
               rel="noopener noreferrer"
               className="inline-flex items-center gap-3 px-8 py-4 rounded-2xl bg-[#EC4899] hover:bg-[#D6317C] text-white font-black text-base border-3 border-[#111111] shadow-[4px_4px_0px_#111111] active:translate-x-[2px] active:translate-y-[2px] active:shadow-[2px_2px_0px_#111111] transition-all"
@@ -293,7 +293,7 @@ export default function LandingPage() {
           <span>•</span>
           <Link href="/login" className="hover:underline">Login</Link>
           <span>•</span>
-          <a href="https://vedbhanu.com" target="_blank" rel="noopener noreferrer" className="hover:underline">VedBhanu.com</a>
+          <Link href="/dashboard" className="hover:underline font-bold text-[#EC4899]">Open Live Demo</Link>
         </div>
       </footer>
     </div>

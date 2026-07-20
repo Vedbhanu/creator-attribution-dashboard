@@ -6,8 +6,8 @@ import { Settings, Globe, DollarSign, Key, ShieldCheck, Sparkles, Save, Check, C
 export default function SettingsPage() {
   const [brandName, setBrandName] = useState('Ved Automation');
   const [currency, setCurrency] = useState('USD');
-  const [customDomain, setCustomDomain] = useState('attrib.vedbhanu.com');
-  const [webhookSecret, setWebhookSecret] = useState('whsec_ved_attrib_982374');
+  const [customDomain, setCustomDomain] = useState('attrib.yourdomain.com');
+  const [webhookSecret, setWebhookSecret] = useState('whsec_creator_attrib_982374');
   const [saved, setSaved] = useState(false);
   const [copiedSecret, setCopiedSecret] = useState(false);
 
