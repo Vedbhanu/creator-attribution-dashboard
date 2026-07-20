@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Search, Mail, Plus, CheckCircle2 } from 'lucide-react';
+import { Search, Mail, Plus, CheckCircle2, Clock, Eye, DollarSign, MousePointerClick, ShieldCheck, X } from 'lucide-react';
 
 interface EnrichedLead {
   id: string;
@@ -24,6 +24,8 @@ export function LeadTable() {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedTimelineLead, setSelectedTimelineLead] = useState<EnrichedLead | null>(null);
+
   const [newEmail, setNewEmail] = useState('');
   const [newPhone, setNewPhone] = useState('');
   const [selectedContentId, setSelectedContentId] = useState('');
@@ -103,7 +105,7 @@ export function LeadTable() {
         <div>
           <h1 className="text-3xl font-extrabold text-[#111111] tracking-tight">Captured Leads</h1>
           <p className="text-sm text-[#4B4B4B] font-semibold mt-1">
-            Every lead automatically attributed back to the content item that converted them.
+            Click any lead row to view their full activity timeline & attribution history.
           </p>
         </div>
 
@@ -157,11 +159,18 @@ export function LeadTable() {
                   <th className="px-6 py-4 text-right">Sale Status</th>
                 </tr>
               </thead>
-              <tbody className="divide-y-2 divide-[#111111]/10 font-medium">
+              <tbody className="divide-y-2 divide-[#111111]/10 font-medium cursor-pointer">
                 {filteredLeads.map((lead) => (
-                  <tr key={lead.id} className="hover:bg-[#F7F4EC] transition-colors">
+                  <tr
+                    key={lead.id}
+                    onClick={() => setSelectedTimelineLead(lead)}
+                    className="hover:bg-[#F7F4EC] transition-colors"
+                  >
                     <td className="px-6 py-4">
-                      <div className="font-extrabold text-[#111111] text-sm">{lead.email}</div>
+                      <div className="font-extrabold text-[#111111] text-sm hover:text-[#EC4899] flex items-center gap-1.5">
+                        {lead.email}
+                        <Clock className="w-3.5 h-3.5 text-[#4A4FE0] opacity-80" />
+                      </div>
                       {lead.phone && <div className="text-[11px] text-[#4B4B4B] font-bold">{lead.phone}</div>}
                     </td>
                     <td className="px-6 py-4">
@@ -196,6 +205,104 @@ export function LeadTable() {
                 ))}
               </tbody>
             </table>
+          </div>
+        </div>
+      )}
+
+      {/* LEAD ACTIVITY TIMELINE MODAL */}
+      {selectedTimelineLead && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#111111]/70 backdrop-blur-xs">
+          <div className="w-full max-w-lg p-6 rounded-3xl bg-white border-3 border-[#111111] shadow-[8px_8px_0px_#111111] space-y-6">
+            <div className="flex items-center justify-between border-b-2 border-[#111111] pb-3">
+              <div className="flex items-center gap-2.5">
+                <div className="w-9 h-9 rounded-xl bg-[#EC4899] text-white border-2 border-[#111111] shadow-[2px_2px_0px_#111111] flex items-center justify-center font-black">
+                  <Clock className="w-5 h-5 text-white" />
+                </div>
+                <div>
+                  <h3 className="text-base font-black text-[#111111]">Lead Activity Timeline</h3>
+                  <p className="text-xs font-bold text-[#EC4899]">{selectedTimelineLead.email}</p>
+                </div>
+              </div>
+              <button
+                onClick={() => setSelectedTimelineLead(null)}
+                className="p-1.5 rounded-xl border-2 border-[#111111] hover:bg-[#F6D74C] font-black"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            {/* Timeline Events */}
+            <div className="space-y-4 relative pl-4 border-l-3 border-[#111111]/20 ml-2">
+              {/* Event 1: Clicked Link */}
+              <div className="relative space-y-1">
+                <div className="w-7 h-7 rounded-full bg-[#F6D74C] text-[#111111] border-2 border-[#111111] shadow-[1px_1px_0px_#111111] flex items-center justify-center absolute -left-[31px] top-0 font-black text-xs">
+                  <MousePointerClick className="w-3.5 h-3.5" />
+                </div>
+                <div className="p-3 rounded-2xl bg-[#F7F4EC] border-2 border-[#111111] space-y-1">
+                  <div className="flex items-center justify-between text-xs font-extrabold text-[#111111]">
+                    <span>1. Clicked Content Link</span>
+                    <span className="text-[10px] text-[#4B4B4B]">{new Date(selectedTimelineLead.created_at).toLocaleTimeString()}</span>
+                  </div>
+                  <p className="text-xs text-[#111111] font-bold">
+                    Source: <strong>{selectedTimelineLead.content_platform}</strong> ({selectedTimelineLead.content_title})
+                  </p>
+                  <p className="text-[10px] font-mono text-[#4A4FE0]">UTM Source: {selectedTimelineLead.utm_source}</p>
+                  <p className="text-[10px] font-mono text-[#4B4B4B]">Cookie ID: {selectedTimelineLead.visitor_cookie}</p>
+                </div>
+              </div>
+
+              {/* Event 2: Submitted Opt-in Form */}
+              <div className="relative space-y-1">
+                <div className="w-7 h-7 rounded-full bg-[#4A4FE0] text-white border-2 border-[#111111] shadow-[1px_1px_0px_#111111] flex items-center justify-center absolute -left-[31px] top-0 font-black text-xs">
+                  <Mail className="w-3.5 h-3.5" />
+                </div>
+                <div className="p-3 rounded-2xl bg-[#F7F4EC] border-2 border-[#111111] space-y-1">
+                  <div className="flex items-center justify-between text-xs font-extrabold text-[#111111]">
+                    <span>2. Submitted Opt-In Form</span>
+                    <span className="text-[10px] text-[#4B4B4B]">{new Date(selectedTimelineLead.created_at).toLocaleDateString()}</span>
+                  </div>
+                  <p className="text-xs text-[#111111] font-bold">
+                    Email: <strong>{selectedTimelineLead.email}</strong>
+                  </p>
+                  {selectedTimelineLead.phone && (
+                    <p className="text-xs text-[#4B4B4B] font-bold">Phone: {selectedTimelineLead.phone}</p>
+                  )}
+                </div>
+              </div>
+
+              {/* Event 3: Converted Revenue Sale */}
+              <div className="relative space-y-1">
+                <div className={`w-7 h-7 rounded-full border-2 border-[#111111] shadow-[1px_1px_0px_#111111] flex items-center justify-center absolute -left-[31px] top-0 font-black text-xs ${selectedTimelineLead.sale_amount > 0 ? 'bg-[#EC4899] text-white' : 'bg-white text-[#4B4B4B]'}`}>
+                  <DollarSign className="w-3.5 h-3.5" />
+                </div>
+                <div className="p-3 rounded-2xl bg-[#F7F4EC] border-2 border-[#111111] space-y-1">
+                  <div className="flex items-center justify-between text-xs font-extrabold text-[#111111]">
+                    <span>3. Sales Conversion</span>
+                    {selectedTimelineLead.sale_amount > 0 && (
+                      <span className="text-xs font-black text-[#EC4899]">${Number(selectedTimelineLead.sale_amount).toFixed(2)}</span>
+                    )}
+                  </div>
+                  {selectedTimelineLead.sale_amount > 0 ? (
+                    <p className="text-xs text-[#EC4899] font-black">
+                      Purchased $${Number(selectedTimelineLead.sale_amount).toFixed(2)} attributed back to {selectedTimelineLead.content_platform}!
+                    </p>
+                  ) : (
+                    <p className="text-xs text-[#4B4B4B] font-semibold">
+                      Lead has not converted a sale yet. (Awaiting PayPal/Payoneer webhook)
+                    </p>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            <div className="flex justify-end pt-2">
+              <button
+                onClick={() => setSelectedTimelineLead(null)}
+                className="px-5 py-2.5 rounded-xl bg-[#EC4899] text-white text-xs font-black border-2 border-[#111111] shadow-[2px_2px_0px_#111111]"
+              >
+                Close Timeline
+              </button>
+            </div>
           </div>
         </div>
       )}
