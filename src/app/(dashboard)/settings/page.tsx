@@ -33,7 +33,10 @@ export default function SettingsPage() {
     try {
       const res = await fetch('/api/webhooks/sales', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${webhookSecret}`
+        },
         body: JSON.stringify({
           email: 'alex.smith@example.com',
           amount: 1.00,

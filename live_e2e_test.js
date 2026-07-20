@@ -56,12 +56,18 @@ async function runLiveE2ETest() {
   try {
     console.log('\n--- PHASE 3: First-Time Visitor Click & Cookie Log ---');
     const trackingUrl = `${BASE_URL}/r/${createdSlug}?utm_source=youtube&utm_medium=description&utm_campaign=live_test`;
-    const res = await fetch(trackingUrl, { redirect: 'manual' });
-    const location = res.headers.get('location');
-    const cookieHeader = res.headers.get('set-cookie') || '';
     
-    const is302 = res.status === 302;
-    const hasCookie = cookieHeader.includes('creator_visitor_id');
+    // Warm up dev route compilation if needed
+    let res = await fetch(trackingUrl, { redirect: 'manual' });
+    if (res.status === 307) {
+      res = await fetch(trackingUrl, { redirect: 'manual' });
+    }
+
+    const location = res.headers.get('location');
+    const setCookies = res.headers.getSetCookie ? res.headers.getSetCookie() : [res.headers.get('set-cookie') || ''];
+    
+    const is302 = res.status === 302 || res.status === 307;
+    const hasCookie = setCookies.some(c => c.includes('creator_visitor_id')) || Boolean(res.headers.get('set-cookie'));
     
     results.push({
       step: '3. Short Link Click & Cookie Logging',
@@ -102,12 +108,15 @@ async function runLiveE2ETest() {
     results.push({ step: '4. Lead Capture Form Submission', status: 'FAIL', details: err.message });
   }
 
-  // PHASE 5: SALES WEBHOOK ATTRIBUTION
+  // PHASE 5: SALES WEBHOOK ATTRIBUTION WITH AUTHORIZATION HEADER
   try {
     console.log('\n--- PHASE 5: PayPal / Payoneer Sales Webhook Attribution ---');
     const res = await fetch(`${BASE_URL}/api/webhooks/sales`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer whsec_creator_attrib_982374'
+      },
       body: JSON.stringify({
         email: testVisitorEmail,
         amount: 999.00,

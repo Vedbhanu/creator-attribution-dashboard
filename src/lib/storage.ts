@@ -60,7 +60,7 @@ class StorageManager {
   async getContent(): Promise<ContentItem[]> {
     if (isSupabaseConfigured() && supabase) {
       const { data, error } = await supabase.from('content').select('*').order('created_at', { ascending: false });
-      if (!error && data && data.length > 0) {
+      if (!error && data) {
         return data as ContentItem[];
       }
     }
@@ -158,7 +158,7 @@ class StorageManager {
   async getVisitors(): Promise<Visitor[]> {
     if (isSupabaseConfigured() && supabase) {
       const { data, error } = await supabase.from('visitors').select('*').order('created_at', { ascending: false });
-      if (!error && data && data.length > 0) {
+      if (!error && data) {
         return data as Visitor[];
       }
     }
@@ -206,7 +206,7 @@ class StorageManager {
   async getLeads(): Promise<Lead[]> {
     if (isSupabaseConfigured() && supabase) {
       const { data, error } = await supabase.from('leads').select('*').order('created_at', { ascending: false });
-      if (!error && data && data.length > 0) {
+      if (!error && data) {
         return data as Lead[];
       }
     }
@@ -243,7 +243,7 @@ class StorageManager {
   async getSales(): Promise<Sale[]> {
     if (isSupabaseConfigured() && supabase) {
       const { data, error } = await supabase.from('sales').select('*').order('created_at', { ascending: false });
-      if (!error && data && data.length > 0) {
+      if (!error && data) {
         return data as Sale[];
       }
     }
