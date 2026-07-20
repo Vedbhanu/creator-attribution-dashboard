@@ -6,7 +6,7 @@ export const metadata = {
 
 export default function SalesPage() {
   return (
-    <div className="max-w-7xl mx-auto py-2">
+    <div className="max-[#111111] max-w-7xl mx-auto py-2">
       <SalesTable />
     </div>
   );

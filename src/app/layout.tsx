@@ -1,14 +1,12 @@
 import type { Metadata } from 'next';
-import { Inter } from 'next/font/google';
+import { Plus_Jakarta_Sans } from 'next/font/google';
 import './globals.css';
-import { Sidebar } from '@/components/layout/sidebar';
-import { Header } from '@/components/layout/header';
 
-const inter = Inter({ subsets: ['latin'] });
+const jakarta = Plus_Jakarta_Sans({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
-  title: 'Creator Attribution Dashboard',
-  description: 'Track visitors, leads, and revenue back to specific content items.',
+  title: 'Creator Attribution Engine | Discover Which Content Makes You Money',
+  description: 'Track visitors, email leads, and revenue back to every YouTube video, X thread, or newsletter issue in real-time.',
 };
 
 export default function RootLayout({
@@ -17,15 +15,9 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className="dark">
-      <body className={`${inter.className} bg-slate-950 text-slate-100 flex min-h-screen`}>
-        <Sidebar />
-        <div className="flex-1 flex flex-col min-w-0">
-          <Header />
-          <main className="p-8 flex-1 overflow-y-auto">
-            {children}
-          </main>
-        </div>
+    <html lang="en">
+      <body className={`${jakarta.className} bg-[#FDFCF8] text-[#111111] min-h-screen selection:bg-[#EC4899] selection:text-white`}>
+        {children}
       </body>
     </html>
   );
