@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { recordSale, getLeads, isSupabaseConfigured } from '@/lib/storage';
+import { storage } from '@/lib/storage';
 
 export async function POST(req: NextRequest) {
   try {
@@ -32,7 +32,7 @@ export async function POST(req: NextRequest) {
     }
 
     // 2. Find matching lead in database by email
-    const leads = await getLeads();
+    const leads = await storage.getLeads();
     const matchingLead = leads.find((l) => l.email.toLowerCase() === email.toLowerCase());
 
     if (!matchingLead) {
@@ -46,12 +46,10 @@ export async function POST(req: NextRequest) {
     }
 
     // 3. Automatically record sale linked to the lead & content item
-    const newSale = await recordSale({
+    const newSale = await storage.addSale({
       lead_id: matchingLead.id,
       amount,
-      product_name: productName,
-      transaction_id: body.id || `paypal_payoneer_${Date.now()}`,
-      created_at: new Date().toISOString(),
+      status: 'completed',
     });
 
     return NextResponse.json({
