@@ -1,5 +1,8 @@
 import LandingPage from '@/app/welcome/page';
 
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 export const metadata = {
   title: 'Creator Attribution Engine | Discover Which Content Makes You Money',
   description: 'Track visitors, email leads, and revenue back to every YouTube video, X thread, or newsletter issue in real-time.',

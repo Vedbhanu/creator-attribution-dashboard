@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Search, DollarSign, Plus, CheckCircle2, AlertCircle, RefreshCw, Zap, Copy, Check } from 'lucide-react';
+import { Search, DollarSign, Plus, CheckCircle2, AlertCircle, RefreshCw, Zap, Copy, Check, X } from 'lucide-react';
 
 interface EnrichedSale {
   id: string;

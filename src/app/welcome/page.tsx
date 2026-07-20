@@ -1,5 +1,7 @@
 'use client';
 
+export const dynamic = 'force-dynamic';
+
 import Link from 'next/link';
 import { Sparkles, ArrowRight, Check, X, ShieldCheck, DollarSign, Eye, Users, Trophy, Play, CheckCircle2 } from 'lucide-react';
 
