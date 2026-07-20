@@ -266,8 +266,8 @@ export default function LandingPage() {
           <div className="p-6 rounded-2xl bg-[#F7F4EC] border-2 border-[#111111] max-w-md mx-auto space-y-4">
             <div className="space-y-1">
               <div className="text-xs font-extrabold text-[#4B4B4B] uppercase">Done-For-You Package</div>
-              <div className="text-2xl font-black text-[#111111]">Full Managed Setup & Support</div>
-              <div className="text-xs font-bold text-[#4A4FE0]">Custom domain mapping & continuous tracking</div>
+              <div className="text-3xl font-black text-[#111111]">$1,000 <span className="text-sm font-bold text-[#4B4B4B]">one-time setup</span></div>
+              <div className="text-xs font-bold text-[#4A4FE0]">+ $30–$50 / month managed hosting & support</div>
             </div>
 
             <ul className="text-xs font-bold text-[#111111] space-y-2 text-left pt-2 border-t border-[#111111]/20">
