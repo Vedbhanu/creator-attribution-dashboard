@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { Plus, UserCheck, Zap, Sparkles } from 'lucide-react';
+import { Plus, UserCheck, Zap } from 'lucide-react';
 import { isSupabaseConfigured } from '@/lib/supabase';
 
 export function Header() {
@@ -17,7 +17,9 @@ export function Header() {
       {/* Main Header Bar */}
       <div className="h-16 border-b-2 border-[#111111] bg-[#FDFCF8] px-8 flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <h2 className="text-sm font-extrabold text-[#111111]">Ved Automation Workspace</h2>
+          <Link href="/" className="text-sm font-extrabold text-[#111111] hover:text-[#EC4899] transition-colors">
+            Ved Automation Workspace
+          </Link>
           <span className="text-[#111111] font-bold">/</span>
           <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-extrabold bg-[#4A4FE0] text-white border-2 border-[#111111] shadow-[2px_2px_0px_#111111]">
             <Zap className="w-3.5 h-3.5 text-[#F6D74C]" />
@@ -34,15 +36,15 @@ export function Header() {
             Add Content Item
           </Link>
 
-          <div className="flex items-center gap-2 pl-4 border-l-2 border-[#111111]">
-            <div className="w-9 h-9 rounded-full bg-[#F6D74C] border-2 border-[#111111] flex items-center justify-center text-[#111111] font-extrabold shadow-[2px_2px_0px_#111111]">
-              <UserCheck className="w-4 h-4 text-[#111111]" />
+          <Link href="/login" className="flex items-center gap-2 pl-4 border-l-2 border-[#111111] group">
+            <div className="w-9 h-9 rounded-full bg-[#F6D74C] border-2 border-[#111111] flex items-center justify-center text-[#111111] font-extrabold shadow-[2px_2px_0px_#111111] group-hover:bg-[#EC4899] group-hover:text-white transition-colors">
+              <UserCheck className="w-4 h-4" />
             </div>
             <div className="text-left hidden sm:block">
-              <p className="text-xs font-extrabold text-[#111111]">Ved Bhanu</p>
-              <p className="text-[10px] text-[#4B4B4B] font-bold">Pro Creator</p>
+              <p className="text-xs font-extrabold text-[#111111] group-hover:text-[#EC4899]">Ved Bhanu</p>
+              <p className="text-[10px] text-[#4B4B4B] font-bold">Pro Account</p>
             </div>
-          </div>
+          </Link>
         </div>
       </div>
     </header>

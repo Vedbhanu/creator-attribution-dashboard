@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { Sparkles, ArrowRight, Check, X, ShieldCheck, DollarSign, Eye, Users, Trophy, Play, CheckCircle2, ChevronRight } from 'lucide-react';
+import { Sparkles, ArrowRight, Check, X, ShieldCheck, DollarSign, Eye, Users, Trophy, Play, CheckCircle2 } from 'lucide-react';
 
 export default function LandingPage() {
   return (
@@ -13,7 +13,7 @@ export default function LandingPage() {
 
       {/* Navigation Header */}
       <header className="max-w-7xl mx-auto px-6 py-5 flex items-center justify-between border-b-2 border-[#111111]/10">
-        <div className="flex items-center gap-3">
+        <Link href="/" className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-2xl bg-[#EC4899] text-white border-2 border-[#111111] shadow-[3px_3px_0px_#111111] flex items-center justify-center font-black">
             <Sparkles className="w-5 h-5 text-white" />
           </div>
@@ -23,17 +23,17 @@ export default function LandingPage() {
               By Ved Automation
             </span>
           </div>
-        </div>
+        </Link>
 
         <div className="flex items-center gap-4">
           <Link
-            href="/"
+            href="/dashboard"
             className="text-xs font-extrabold text-[#111111] hover:text-[#EC4899] transition-colors"
           >
             Live Demo
           </Link>
           <Link
-            href="/"
+            href="/dashboard"
             className="px-5 py-2.5 rounded-xl bg-[#EC4899] hover:bg-[#D6317C] text-white font-extrabold text-xs border-2 border-[#111111] shadow-[3px_3px_0px_#111111] active:translate-x-[2px] active:translate-y-[2px] active:shadow-[1px_1px_0px_#111111] transition-all"
           >
             Open Dashboard →
@@ -41,9 +41,8 @@ export default function LandingPage() {
         </div>
       </header>
 
-      {/* HERO SECTION (Marc Lou style: Bold Headline, Highlighted Words, Avatars) */}
+      {/* HERO SECTION */}
       <section className="max-w-5xl mx-auto px-6 pt-16 pb-12 text-center space-y-8">
-        {/* Creator Avatars & Proof */}
         <div className="inline-flex items-center gap-3 px-4 py-2 rounded-full bg-white border-2 border-[#111111] shadow-[3px_3px_0px_#111111]">
           <div className="flex -space-x-2">
             <span className="w-7 h-7 rounded-full bg-[#EC4899] border-2 border-[#111111] text-[10px] font-black text-white flex items-center justify-center">YT</span>
@@ -55,7 +54,6 @@ export default function LandingPage() {
           </span>
         </div>
 
-        {/* Main Headline */}
         <h1 className="text-4xl sm:text-6xl font-black text-[#111111] tracking-tight leading-[1.15] max-w-4xl mx-auto">
           Discover which content <br />
           <span className="relative inline-block px-3 py-1 bg-[#EC4899] text-white rounded-xl border-2 border-[#111111] shadow-[4px_4px_0px_#111111] rotate-[-1deg]">
@@ -63,16 +61,14 @@ export default function LandingPage() {
           </span>
         </h1>
 
-        {/* Subheadline */}
         <p className="text-base sm:text-xl text-[#4B4B4B] font-semibold max-w-2xl mx-auto leading-relaxed">
           Track visitors, email leads, and sales back to every YouTube video, X thread, or newsletter issue in real-time. No complicated setup required.
         </p>
 
-        {/* CTA Button Group */}
         <div className="space-y-3 pt-2">
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
             <Link
-              href="/"
+              href="/signup"
               className="w-full sm:w-auto px-8 py-4 rounded-2xl bg-[#EC4899] hover:bg-[#D6317C] text-white font-black text-base border-3 border-[#111111] shadow-[5px_5px_0px_#111111] active:translate-x-[2px] active:translate-y-[2px] active:shadow-[2px_2px_0px_#111111] transition-all flex items-center justify-center gap-2"
             >
               <span>Get Your Managed Dashboard</span>
@@ -101,9 +97,9 @@ export default function LandingPage() {
           </div>
         </div>
 
-        {/* Interactive Dashboard Preview Box (Marc Lou style) */}
+        {/* Preview Box */}
         <div className="pt-8">
-          <div className="p-3 rounded-3xl bg-white border-3 border-[#111111] shadow-[8px_8px_0px_#111111] overflow-hidden max-w-4xl mx-auto">
+          <Link href="/dashboard" className="block p-3 rounded-3xl bg-white border-3 border-[#111111] shadow-[8px_8px_0px_#111111] overflow-hidden max-w-4xl mx-auto hover:border-[#EC4899] transition-all group">
             <div className="flex items-center justify-between px-4 py-2 border-b-2 border-[#111111] bg-[#F7F4EC] rounded-t-2xl">
               <div className="flex items-center gap-2">
                 <span className="w-3 h-3 rounded-full bg-[#EC4899] border border-[#111111]"></span>
@@ -111,7 +107,7 @@ export default function LandingPage() {
                 <span className="w-3 h-3 rounded-full bg-[#4A4FE0] border border-[#111111]"></span>
               </div>
               <span className="text-xs font-mono font-bold text-[#111111]">attrib.vedbhanu.com/dashboard</span>
-              <span className="text-xs font-bold text-[#EC4899]">Live Interactive Preview</span>
+              <span className="text-xs font-bold text-[#EC4899] group-hover:underline">Click to Open Demo →</span>
             </div>
 
             <div className="p-6 bg-[#FDFCF8] text-left space-y-6">
@@ -135,11 +131,11 @@ export default function LandingPage() {
                 </div>
               </div>
             </div>
-          </div>
+          </Link>
         </div>
       </section>
 
-      {/* PROBLEM VS SOLUTION SECTION (The "Old Way vs The Ved Way") */}
+      {/* PAIN VS SOLUTION */}
       <section className="border-t-3 border-[#111111] bg-[#F7F4EC] py-20 px-6">
         <div className="max-w-5xl mx-auto space-y-12 text-center">
           <div className="space-y-3">
@@ -153,7 +149,6 @@ export default function LandingPage() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8 text-left">
-            {/* The Old Way */}
             <div className="p-8 rounded-3xl bg-white border-3 border-[#111111] shadow-[5px_5px_0px_#111111] space-y-6">
               <div className="flex items-center justify-between border-b-2 border-[#111111] pb-4">
                 <h3 className="text-xl font-black text-[#111111]">🚫 The Old Way</h3>
@@ -177,7 +172,6 @@ export default function LandingPage() {
               </ul>
             </div>
 
-            {/* The Ved Attribution Way */}
             <div className="p-8 rounded-3xl bg-[#EC4899] text-white border-3 border-[#111111] shadow-[5px_5px_0px_#111111] space-y-6">
               <div className="flex items-center justify-between border-b-2 border-[#111111] pb-4">
                 <h3 className="text-xl font-black text-white">⚡ The Creator Attribution Way</h3>
@@ -204,7 +198,7 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* 3-STEP "HOW IT WORKS" SECTION */}
+      {/* 3-STEP "HOW IT WORKS" */}
       <section className="py-20 px-6 max-w-5xl mx-auto space-y-12 text-center">
         <div className="space-y-3">
           <span className="px-3 py-1 rounded-full bg-[#4A4FE0] text-white text-xs font-black border-2 border-[#111111] uppercase tracking-wider">
@@ -248,7 +242,7 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* MANAGED PRICING / AUDIT SECTION (No Stripe required, custom managed offer) */}
+      {/* MANAGED PRICING */}
       <section className="border-t-3 border-[#111111] bg-[#F6D74C] py-20 px-6">
         <div className="max-w-4xl mx-auto p-10 rounded-3xl bg-white border-3 border-[#111111] shadow-[8px_8px_0px_#111111] text-center space-y-8">
           <div className="space-y-3">
@@ -295,7 +289,9 @@ export default function LandingPage() {
       <footer className="border-t-3 border-[#111111] bg-[#F7F4EC] py-8 text-center text-xs font-bold text-[#111111] space-y-2">
         <p>© 2026 Creator Attribution Engine — Built by Ved Automation</p>
         <div className="flex items-center justify-center gap-4 text-[11px] text-[#4B4B4B]">
-          <Link href="/" className="hover:underline">Dashboard</Link>
+          <Link href="/dashboard" className="hover:underline">App Dashboard</Link>
+          <span>•</span>
+          <Link href="/login" className="hover:underline">Login</Link>
           <span>•</span>
           <a href="https://vedbhanu.com" target="_blank" rel="noopener noreferrer" className="hover:underline">VedBhanu.com</a>
         </div>
