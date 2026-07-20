@@ -139,12 +139,21 @@ export function LeadTable() {
       {loading ? (
         <div className="p-12 text-center text-[#4B4B4B] text-xs font-bold">Loading leads data...</div>
       ) : filteredLeads.length === 0 ? (
-        <div className="p-12 text-center rounded-2xl bg-white border-2.5 border-[#111111] shadow-[4px_4px_0px_#111111] space-y-3">
-          <Mail className="w-8 h-8 text-[#EC4899] mx-auto" />
-          <p className="text-base text-[#111111] font-extrabold">No leads captured yet</p>
-          <p className="text-xs text-[#4B4B4B] font-semibold max-w-sm mx-auto">
-            Visitors who submit lead forms at `/c/[slug]` will automatically appear here with full attribution.
-          </p>
+        <div className="p-12 text-center rounded-2xl bg-white border-2.5 border-[#111111] shadow-[4px_4px_0px_#111111] space-y-4">
+          <Mail className="w-10 h-10 text-[#EC4899] mx-auto" />
+          <div className="space-y-1">
+            <p className="text-base text-[#111111] font-extrabold">No leads captured yet</p>
+            <p className="text-xs text-[#4B4B4B] font-semibold max-w-md mx-auto">
+              Visitors who opt in via your hosted forms (e.g. <code>/c/[slug]</code>) or embedded script will automatically appear here with full 30-day attribution.
+            </p>
+          </div>
+          <button
+            onClick={() => setIsModalOpen(true)}
+            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[#F6D74C] text-[#111111] font-extrabold text-xs border-2 border-[#111111] shadow-[2px_2px_0px_#111111] hover:bg-white transition-all"
+          >
+            <Plus className="w-4 h-4" />
+            <span>Record Manual Lead or Test Lead</span>
+          </button>
         </div>
       ) : (
         <div className="rounded-2xl bg-white border-2.5 border-[#111111] overflow-hidden shadow-[4px_4px_0px_#111111]">

@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Settings, Globe, DollarSign, Key, ShieldCheck, Sparkles, Save, Check } from 'lucide-react';
+import { Settings, Globe, DollarSign, Key, ShieldCheck, Sparkles, Save, Check, Copy } from 'lucide-react';
 
 export default function SettingsPage() {
   const [brandName, setBrandName] = useState('Ved Automation');
@@ -9,11 +9,18 @@ export default function SettingsPage() {
   const [customDomain, setCustomDomain] = useState('attrib.vedbhanu.com');
   const [webhookSecret, setWebhookSecret] = useState('whsec_ved_attrib_982374');
   const [saved, setSaved] = useState(false);
+  const [copiedSecret, setCopiedSecret] = useState(false);
 
   const handleSave = (e: React.FormEvent) => {
     e.preventDefault();
     setSaved(true);
     setTimeout(() => setSaved(false), 2000);
+  };
+
+  const handleCopySecret = () => {
+    navigator.clipboard.writeText(webhookSecret);
+    setCopiedSecret(true);
+    setTimeout(() => setCopiedSecret(false), 2000);
   };
 
   return (
@@ -104,12 +111,22 @@ export default function SettingsPage() {
 
           <div className="space-y-2">
             <label className="text-xs font-extrabold text-[#111111]">Sales Webhook Authorization Secret</label>
-            <input
-              type="text"
-              readOnly
-              value={webhookSecret}
-              className="w-full px-4 py-3 rounded-xl bg-[#F7F4EC] border-2 border-[#111111] text-xs font-mono font-bold text-[#111111]"
-            />
+            <div className="flex items-center gap-2">
+              <input
+                type="text"
+                readOnly
+                value={webhookSecret}
+                className="w-full px-4 py-3 rounded-xl bg-[#F7F4EC] border-2 border-[#111111] text-xs font-mono font-bold text-[#111111]"
+              />
+              <button
+                type="button"
+                onClick={handleCopySecret}
+                className="px-4 py-3 rounded-xl bg-[#4A4FE0] hover:bg-[#3b40cc] text-white border-2 border-[#111111] shadow-[2px_2px_0px_#111111] text-xs font-black inline-flex items-center gap-1.5 whitespace-nowrap transition-all"
+              >
+                {copiedSecret ? <Check className="w-4 h-4 text-[#F6D74C]" /> : <Copy className="w-4 h-4" />}
+                <span>{copiedSecret ? 'Copied Secret!' : 'Copy Secret'}</span>
+              </button>
+            </div>
             <p className="text-[11px] text-[#4B4B4B] font-bold">
               Used to secure incoming PayPal / Payoneer / Zapier purchase webhooks.
             </p>
