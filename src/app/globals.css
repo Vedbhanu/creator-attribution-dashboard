@@ -1,0 +1,124 @@
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --bg: #FDFCF8;
+    --bg-alt: #F7F4EC;
+    --ink: #111111;
+    --pink: #EC4899;
+    --blue: #4A4FE0;
+    --yellow: #F6D74C;
+  }
+
+  body {
+    background-color: #FDFCF8;
+    color: #111111;
+    font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    line-height: 1.55;
+    min-height: 100vh;
+  }
+}
+
+/* VedBhanu Neo-Brutalist Component Utilities */
+.neo-card {
+  background-color: #FFFFFF;
+  border: 2.5px solid #111111;
+  border-radius: 16px;
+  box-shadow: 4px 4px 0px #111111;
+}
+
+.neo-card-alt {
+  background-color: #F7F4EC;
+  border: 2.5px solid #111111;
+  border-radius: 16px;
+  box-shadow: 4px 4px 0px #111111;
+}
+
+.neo-btn-pink {
+  background-color: #EC4899;
+  color: #FFFFFF;
+  font-weight: 700;
+  border: 2px solid #111111;
+  border-radius: 12px;
+  box-shadow: 3px 3px 0px #111111;
+  transition: all 0.1s ease;
+}
+.neo-btn-pink:hover {
+  background-color: #D6317C;
+}
+.neo-btn-pink:active {
+  transform: translate(2px, 2px);
+  box-shadow: 1px 1px 0px #111111;
+}
+
+.neo-btn-blue {
+  background-color: #4A4FE0;
+  color: #FFFFFF;
+  font-weight: 700;
+  border: 2px solid #111111;
+  border-radius: 12px;
+  box-shadow: 3px 3px 0px #111111;
+  transition: all 0.1s ease;
+}
+.neo-btn-blue:active {
+  transform: translate(2px, 2px);
+  box-shadow: 1px 1px 0px #111111;
+}
+
+.neo-btn-yellow {
+  background-color: #F6D74C;
+  color: #111111;
+  font-weight: 700;
+  border: 2px solid #111111;
+  border-radius: 12px;
+  box-shadow: 3px 3px 0px #111111;
+  transition: all 0.1s ease;
+}
+.neo-btn-yellow:active {
+  transform: translate(2px, 2px);
+  box-shadow: 1px 1px 0px #111111;
+}
+
+.neo-badge-blue {
+  background-color: #4A4FE0;
+  color: #FFFFFF;
+  font-weight: 800;
+  border: 2px solid #111111;
+  border-radius: 999px;
+  box-shadow: 2px 2px 0px #111111;
+}
+
+.neo-badge-pink {
+  background-color: #EC4899;
+  color: #FFFFFF;
+  font-weight: 800;
+  border: 2px solid #111111;
+  border-radius: 999px;
+  box-shadow: 2px 2px 0px #111111;
+}
+
+.neo-badge-yellow {
+  background-color: #F6D74C;
+  color: #111111;
+  font-weight: 800;
+  border: 2px solid #111111;
+  border-radius: 999px;
+  box-shadow: 2px 2px 0px #111111;
+}
+
+/* Custom Scrollbars */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: #F7F4EC;
+}
+::-webkit-scrollbar-thumb {
+  background: #111111;
+  border-radius: 4px;
+}

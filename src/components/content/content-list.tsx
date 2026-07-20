@@ -1,0 +1,219 @@
+'use client';
+
+import { useState, useEffect } from 'react';
+import Link from 'next/link';
+import { ContentItem, ContentAttributionMetrics } from '@/types/database';
+import { Search, ExternalLink, Copy, Check, Trash2, Plus, Sparkles } from 'lucide-react';
+
+export function ContentList() {
+  const [metrics, setMetrics] = useState<ContentAttributionMetrics[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [selectedPlatform, setSelectedPlatform] = useState<string>('All');
+  const [copiedSlug, setCopiedSlug] = useState<string | null>(null);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [origin, setOrigin] = useState('');
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      setOrigin(window.location.origin);
+    }
+    fetchContent();
+  }, []);
+
+  const fetchContent = async () => {
+    try {
+      const res = await fetch('/api/content');
+      const json = await res.json();
+      if (json.success && json.metrics) {
+        setMetrics(json.metrics);
+      }
+    } catch (err) {
+      console.error('Failed to fetch content:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleCopyLink = (slug: string) => {
+    const fullUrl = `${origin}/r/${slug}`;
+    navigator.clipboard.writeText(fullUrl);
+    setCopiedSlug(slug);
+    setTimeout(() => setCopiedSlug(null), 2000);
+  };
+
+  const handleDelete = async (id: string) => {
+    if (!confirm('Are you sure you want to delete this content item? This will remove associated tracking metrics.')) {
+      return;
+    }
+    setDeletingId(id);
+    try {
+      const res = await fetch(`/api/content/${id}`, { method: 'DELETE' });
+      if (res.ok) {
+        setMetrics(prev => prev.filter(m => m.content.id !== id));
+      }
+    } catch (err) {
+      console.error('Failed to delete content:', err);
+    } finally {
+      setDeletingId(null);
+    }
+  };
+
+  const filteredMetrics = metrics.filter(m => {
+    const matchesSearch = m.content.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                          m.content.tracking_slug.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesPlatform = selectedPlatform === 'All' || m.content.platform === selectedPlatform;
+    return matchesSearch && matchesPlatform;
+  });
+
+  const platformsList = ['All', ...Array.from(new Set(metrics.map(m => m.content.platform)))];
+
+  return (
+    <div className="space-y-6">
+      {/* Top Action Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <h1 className="text-3xl font-extrabold text-[#111111] tracking-tight">Content Library</h1>
+          <p className="text-sm text-[#4B4B4B] font-semibold mt-1">
+            Manage your content links and view real-time attribution metrics.
+          </p>
+        </div>
+
+        <Link
+          href="/content/new"
+          className="inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl text-xs font-extrabold bg-[#EC4899] hover:bg-[#D6317C] text-white border-2 border-[#111111] shadow-[4px_4px_0px_#111111] active:translate-x-[2px] active:translate-y-[2px] active:shadow-[2px_2px_0px_#111111] transition-all self-start sm:self-auto"
+        >
+          <Plus className="w-4 h-4" />
+          Add Content Item
+        </Link>
+      </div>
+
+      {/* Filters Bar */}
+      <div className="p-4 rounded-2xl bg-white border-2.5 border-[#111111] shadow-[4px_4px_0px_#111111] flex flex-col md:flex-row gap-4 items-center justify-between">
+        {/* Search */}
+        <div className="relative w-full md:w-80">
+          <Search className="w-4 h-4 absolute left-3.5 top-3.5 text-[#111111]" />
+          <input
+            type="text"
+            placeholder="Search by title or slug..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-[#F7F4EC] border-2 border-[#111111] text-xs font-bold text-[#111111] focus:outline-none focus:bg-white transition-all placeholder:text-[#8A8A8A]"
+          />
+        </div>
+
+        {/* Platform Pills */}
+        <div className="flex items-center gap-2 overflow-x-auto w-full md:w-auto pb-1 md:pb-0">
+          {platformsList.map(p => (
+            <button
+              key={p}
+              onClick={() => setSelectedPlatform(p)}
+              className={`px-3 py-1.5 rounded-xl text-xs font-extrabold border-2 border-[#111111] whitespace-nowrap transition-all ${
+                selectedPlatform === p
+                  ? 'bg-[#4A4FE0] text-white shadow-[2px_2px_0px_#111111]'
+                  : 'bg-white text-[#111111] hover:bg-[#F7F4EC]'
+              }`}
+            >
+              {p}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Content Table / Cards */}
+      {loading ? (
+        <div className="p-12 text-center text-[#4B4B4B] text-xs font-bold">Loading content library...</div>
+      ) : filteredMetrics.length === 0 ? (
+        <div className="p-12 text-center rounded-2xl bg-white border-2.5 border-[#111111] shadow-[4px_4px_0px_#111111] space-y-3">
+          <Sparkles className="w-8 h-8 text-[#EC4899] mx-auto" />
+          <p className="text-base text-[#111111] font-extrabold">No content items found</p>
+          <p className="text-xs text-[#4B4B4B] font-semibold max-w-sm mx-auto">
+            {searchTerm ? 'Try adjusting your search filter.' : 'Add your first piece of content to start generating attribution links.'}
+          </p>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 gap-5">
+          {filteredMetrics.map(({ content, visitors_count, leads_count, sales_count, total_revenue }) => (
+            <div
+              key={content.id}
+              className="p-6 rounded-2xl bg-white border-2.5 border-[#111111] shadow-[4px_4px_0px_#111111] flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6"
+            >
+              {/* Info Column */}
+              <div className="space-y-3 max-w-xl">
+                <div className="flex items-center gap-2">
+                  <span className="px-3 py-0.5 rounded-full text-[10px] font-extrabold bg-[#4A4FE0] text-white border-2 border-[#111111] shadow-[1px_1px_0px_#111111]">
+                    {content.platform}
+                  </span>
+                  <span className="text-xs text-[#4B4B4B] font-bold">
+                    Published {new Date(content.published_at).toLocaleDateString()}
+                  </span>
+                </div>
+
+                <Link href={`/content/${content.id}`} className="block group">
+                  <h3 className="font-black text-[#111111] group-hover:text-[#EC4899] transition-colors text-lg">
+                    {content.title}
+                  </h3>
+                </Link>
+
+                <div className="flex items-center gap-4 text-xs font-mono">
+                  <div className="flex items-center gap-2 text-[#111111] bg-[#F7F4EC] px-3 py-1.5 rounded-xl border-2 border-[#111111] font-bold">
+                    <span className="text-[#4B4B4B] text-[10px]">Slug:</span>
+                    <span>/r/{content.tracking_slug}</span>
+                    <button
+                      onClick={() => handleCopyLink(content.tracking_slug)}
+                      title="Copy Tracking Link"
+                      className="ml-1 text-[#111111] hover:text-[#EC4899]"
+                    >
+                      {copiedSlug === content.tracking_slug ? <Check className="w-4 h-4 text-[#EC4899]" /> : <Copy className="w-4 h-4" />}
+                    </button>
+                  </div>
+
+                  <a
+                    href={content.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-[#4B4B4B] font-bold hover:text-[#111111] flex items-center gap-1 text-[11px]"
+                  >
+                    Target <ExternalLink className="w-3 h-3" />
+                  </a>
+                </div>
+              </div>
+
+              {/* Attribution Metrics Pill Matrix */}
+              <div className="flex items-center gap-3 border-t-2 lg:border-t-0 lg:border-l-2 border-[#111111] pt-4 lg:pt-0 lg:pl-6 w-full lg:w-auto justify-between lg:justify-end">
+                <div className="text-center px-4 py-2 rounded-xl bg-[#F7F4EC] border-2 border-[#111111] min-w-[70px]">
+                  <div className="text-[10px] text-[#4B4B4B] font-extrabold uppercase">Visitors</div>
+                  <div className="text-base font-black text-[#111111]">{visitors_count}</div>
+                </div>
+
+                <div className="text-center px-4 py-2 rounded-xl bg-[#F7F4EC] border-2 border-[#111111] min-w-[70px]">
+                  <div className="text-[10px] text-[#4B4B4B] font-extrabold uppercase">Leads</div>
+                  <div className="text-base font-black text-[#4A4FE0]">{leads_count}</div>
+                </div>
+
+                <div className="text-center px-4 py-2 rounded-xl bg-[#F7F4EC] border-2 border-[#111111] min-w-[70px]">
+                  <div className="text-[10px] text-[#4B4B4B] font-extrabold uppercase">Sales</div>
+                  <div className="text-base font-black text-[#EC4899]">{sales_count}</div>
+                </div>
+
+                <div className="text-center px-4 py-2 rounded-xl bg-[#EC4899] text-white border-2 border-[#111111] shadow-[2px_2px_0px_#111111] min-w-[110px]">
+                  <div className="text-[10px] text-white font-extrabold uppercase">Revenue</div>
+                  <div className="text-lg font-black text-white">${total_revenue.toFixed(2)}</div>
+                </div>
+
+                <button
+                  onClick={() => handleDelete(content.id)}
+                  disabled={deletingId === content.id}
+                  className="p-2.5 text-[#111111] hover:text-white hover:bg-[#EC4899] rounded-xl border-2 border-[#111111] transition-all ml-1 shadow-[2px_2px_0px_#111111]"
+                  title="Delete Content Item"
+                >
+                  <Trash2 className="w-4 h-4" />
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
