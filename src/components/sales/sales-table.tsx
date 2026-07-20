@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Search, DollarSign, Plus, CheckCircle2, AlertCircle, RefreshCw } from 'lucide-react';
+import { Search, DollarSign, Plus, CheckCircle2, AlertCircle, RefreshCw, Zap, Copy, Check } from 'lucide-react';
 
 interface EnrichedSale {
   id: string;
@@ -22,6 +22,9 @@ export function SalesTable() {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isWebhookModalOpen, setIsWebhookModalOpen] = useState(false);
+  const [copiedWebhook, setCopiedWebhook] = useState(false);
+  const [origin, setOrigin] = useState('');
 
   // Form fields for new sale modal
   const [selectedLeadId, setSelectedLeadId] = useState('');
@@ -30,6 +33,9 @@ export function SalesTable() {
   const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
+    if (typeof window !== 'undefined') {
+      setOrigin(window.location.origin);
+    }
     fetchSales();
     fetchLeadsOptions();
   }, []);
@@ -92,6 +98,14 @@ export function SalesTable() {
     }
   };
 
+  const webhookUrl = `${origin}/api/webhooks/sales`;
+
+  const copyWebhookUrl = () => {
+    navigator.clipboard.writeText(webhookUrl);
+    setCopiedWebhook(true);
+    setTimeout(() => setCopiedWebhook(false), 2000);
+  };
+
   const filteredSales = sales.filter(s =>
     s.lead_email.toLowerCase().includes(searchTerm.toLowerCase()) ||
     s.content_title.toLowerCase().includes(searchTerm.toLowerCase())
@@ -112,13 +126,23 @@ export function SalesTable() {
           </p>
         </div>
 
-        <button
-          onClick={() => setIsModalOpen(true)}
-          className="inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl text-xs font-extrabold bg-[#EC4899] hover:bg-[#D6317C] text-white border-2 border-[#111111] shadow-[4px_4px_0px_#111111] active:translate-x-[2px] active:translate-y-[2px] active:shadow-[2px_2px_0px_#111111] transition-all self-start sm:self-auto"
-        >
-          <Plus className="w-4 h-4" />
-          Record New Sale
-        </button>
+        <div className="flex items-center gap-3 self-start sm:self-auto">
+          <button
+            onClick={() => setIsWebhookModalOpen(true)}
+            className="inline-flex items-center gap-2 px-4 py-3 rounded-xl text-xs font-extrabold bg-[#4A4FE0] hover:bg-[#3b40cc] text-white border-2 border-[#111111] shadow-[3px_3px_0px_#111111] active:translate-x-[1px] active:translate-y-[1px] transition-all"
+          >
+            <Zap className="w-4 h-4 text-[#F6D74C]" />
+            PayPal / Payoneer Webhook
+          </button>
+
+          <button
+            onClick={() => setIsModalOpen(true)}
+            className="inline-flex items-center gap-2 px-5 py-3 rounded-xl text-xs font-extrabold bg-[#EC4899] hover:bg-[#D6317C] text-white border-2 border-[#111111] shadow-[4px_4px_0px_#111111] active:translate-x-[2px] active:translate-y-[2px] active:shadow-[2px_2px_0px_#111111] transition-all"
+          >
+            <Plus className="w-4 h-4" />
+            Record New Sale
+          </button>
+        </div>
       </div>
 
       {/* KPI Cards Bar */}
@@ -166,7 +190,7 @@ export function SalesTable() {
           <DollarSign className="w-8 h-8 text-[#EC4899] mx-auto" />
           <p className="text-base text-[#111111] font-extrabold">No sales recorded yet</p>
           <p className="text-xs text-[#4B4B4B] font-semibold max-w-sm mx-auto">
-            Record your first sale to map revenue back to the original content item that generated the lead.
+            Record your first sale or connect PayPal/Payoneer webhooks to map revenue automatically.
           </p>
         </div>
       ) : (
@@ -225,6 +249,66 @@ export function SalesTable() {
                 ))}
               </tbody>
             </table>
+          </div>
+        </div>
+      )}
+
+      {/* Webhook Info Modal */}
+      {isWebhookModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#111111]/70 backdrop-blur-xs">
+          <div className="w-full max-w-lg p-6 rounded-3xl bg-white border-3 border-[#111111] shadow-[6px_6px_0px_#111111] space-y-5">
+            <div className="flex items-center justify-between border-b-2 border-[#111111] pb-3">
+              <div className="flex items-center gap-2">
+                <Zap className="w-5 h-5 text-[#4A4FE0]" />
+                <h3 className="text-base font-black text-[#111111]">Automated Sales Webhook</h3>
+              </div>
+              <button
+                onClick={() => setIsWebhookModalOpen(false)}
+                className="p-1 rounded-lg hover:bg-[#F7F4EC] text-[#111111] font-extrabold"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <p className="text-xs text-[#4B4B4B] font-semibold leading-relaxed">
+              Connect PayPal, Payoneer, Zapier, or n8n to automatically attribute revenue whenever a lead purchases!
+            </p>
+
+            <div className="p-4 rounded-2xl bg-[#F7F4EC] border-2 border-[#111111] space-y-2">
+              <div className="flex items-center justify-between text-xs font-extrabold text-[#111111]">
+                <span>Your Webhook Endpoint URL</span>
+                <button
+                  onClick={copyWebhookUrl}
+                  className="text-[#4A4FE0] hover:underline inline-flex items-center gap-1 font-black"
+                >
+                  {copiedWebhook ? <Check className="w-3.5 h-3.5 text-[#EC4899]" /> : <Copy className="w-3.5 h-3.5" />}
+                  {copiedWebhook ? 'Copied!' : 'Copy URL'}
+                </button>
+              </div>
+              <p className="text-xs font-mono font-bold text-[#4A4FE0] break-all bg-white p-3 rounded-xl border-2 border-[#111111]">
+                {webhookUrl}
+              </p>
+            </div>
+
+            <div className="space-y-2 text-xs font-bold text-[#111111]">
+              <p className="font-extrabold text-[#EC4899]">Sample JSON Payload for Payoneer / Zapier / n8n:</p>
+              <pre className="p-3 rounded-xl bg-[#111111] text-[#F6D74C] font-mono text-[11px] overflow-x-auto">
+{`{
+  "email": "lead@customer.com",
+  "amount": 299.00,
+  "product_name": "Course Purchase"
+}`}
+              </pre>
+            </div>
+
+            <div className="flex justify-end pt-2">
+              <button
+                onClick={() => setIsWebhookModalOpen(false)}
+                className="px-5 py-2 rounded-xl text-xs font-black bg-[#EC4899] text-white border-2 border-[#111111] shadow-[2px_2px_0px_#111111]"
+              >
+                Done
+              </button>
+            </div>
           </div>
         </div>
       )}
