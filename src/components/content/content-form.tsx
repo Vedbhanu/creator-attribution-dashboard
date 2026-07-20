@@ -54,12 +54,24 @@ export function ContentForm() {
   // Auto-generate tracking slug from title slug
   useEffect(() => {
     if (!isCustomSlug && title) {
-      const platformPrefix = platform.toLowerCase().replace(/[^a-z0-9]/g, '').substring(0, 2);
+      const prefixMap: Record<string, string> = {
+        'YouTube': 'yt',
+        'Twitter/X': 'tw',
+        'Newsletter': 'nl',
+        'LinkedIn': 'li',
+        'TikTok': 'tk',
+        'Instagram': 'ig',
+        'Podcast': 'pod',
+        'Blog': 'blog',
+        'Other': 'post'
+      };
+      const platformPrefix = prefixMap[platform] || 'ref';
       const titleSlug = title
         .toLowerCase()
         .replace(/[^a-z0-9]/g, '-')
         .replace(/-+/g, '-')
-        .substring(0, 30);
+        .replace(/^-|-$/g, '')
+        .substring(0, 35);
       setTrackingSlug(`${platformPrefix}-${titleSlug}`);
     }
   }, [title, platform, isCustomSlug]);
