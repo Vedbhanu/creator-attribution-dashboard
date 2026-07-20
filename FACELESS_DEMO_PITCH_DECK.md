@@ -16,7 +16,7 @@ Here is your complete **Faceless Product Pitch Deck**. You don't need to show yo
 > *"Everything is 100% managed. We set up your private Supabase database, hosted lead capture forms, and real-time revenue leaderboard for a turnkey $1,000 setup plus small monthly hosting."*
 
 ### 1:15 - 1:30 | Call to Action
-> *"Ready to see which content makes you money? Book your 1-on-1 systems setup audit today at **vedbhanu.com/#book**!"*
+> *"Ready to see which content makes you money? Book your 1-on-1 systems audit today at https://cal.com/ved-automation-contentleverage/creator-attribution?overlayCalendar=true!"*
 
 ---
 

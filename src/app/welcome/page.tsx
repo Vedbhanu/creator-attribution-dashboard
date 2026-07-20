@@ -76,7 +76,7 @@ export default function LandingPage() {
             </Link>
 
             <a
-              href="https://vedbhanu.com/#book"
+              href="https://cal.com/ved-automation-contentleverage/creator-attribution?overlayCalendar=true"
               target="_blank"
               rel="noopener noreferrer"
               className="w-full sm:w-auto px-7 py-4 rounded-2xl bg-white hover:bg-[#F7F4EC] text-[#111111] font-extrabold text-base border-3 border-[#111111] shadow-[4px_4px_0px_#111111] active:translate-x-[2px] active:translate-y-[2px] active:shadow-[2px_2px_0px_#111111] transition-all flex items-center justify-center gap-2"
@@ -274,7 +274,7 @@ export default function LandingPage() {
 
           <div className="pt-2">
             <a
-              href="https://vedbhanu.com/#book"
+              href="https://cal.com/ved-automation-contentleverage/creator-attribution?overlayCalendar=true"
               target="_blank"
               rel="noopener noreferrer"
               className="inline-flex items-center gap-3 px-8 py-4 rounded-2xl bg-[#EC4899] hover:bg-[#D6317C] text-white font-black text-base border-3 border-[#111111] shadow-[4px_4px_0px_#111111] active:translate-x-[2px] active:translate-y-[2px] active:shadow-[2px_2px_0px_#111111] transition-all"
