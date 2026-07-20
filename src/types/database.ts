@@ -15,6 +15,7 @@ export interface ContentItem {
   title: string;
   platform: PlatformType;
   url: string;
+  destination_url?: string;
   tracking_slug: string;
   published_at: string;
   created_at: string;

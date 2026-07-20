@@ -57,6 +57,12 @@ export default function HostedLeadCapturePage({ params }: { params: { slug: stri
       }
 
       setSubmitted(true);
+      const targetRedirect = content?.destination_url || content?.url;
+      if (targetRedirect) {
+        setTimeout(() => {
+          window.location.href = targetRedirect;
+        }, 2000);
+      }
     } catch (err: any) {
       setError(err.message);
     } finally {

@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Sparkles, ArrowRight, Check, Copy, ExternalLink, Globe, DollarSign, Video, CheckCircle2 } from 'lucide-react';
+import { getAppDomain, generateShortSlug } from '@/lib/utils';
 
 export default function OnboardingWizardPage() {
   const router = useRouter();
@@ -24,9 +25,7 @@ export default function OnboardingWizardPage() {
   const [copiedLink, setCopiedLink] = useState<string | null>(null);
 
   useEffect(() => {
-    if (typeof window !== 'undefined') {
-      setOrigin(window.location.origin);
-    }
+    setOrigin(getAppDomain());
   }, []);
 
   const handleStep1Submit = (e: React.FormEvent) => {
@@ -41,7 +40,7 @@ export default function OnboardingWizardPage() {
     setLoading(true);
 
     try {
-      const slug = title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '') + '-' + Math.random().toString(36).substring(2, 6);
+      const slug = generateShortSlug(title);
       
       const res = await fetch('/api/content', {
         method: 'POST',
@@ -75,8 +74,9 @@ export default function OnboardingWizardPage() {
     setTimeout(() => setCopiedLink(null), 2000);
   };
 
-  const trackingUrl = createdSlug ? `${origin}/r/${createdSlug}` : '';
-  const leadFormUrl = createdSlug ? `${origin}/c/${createdSlug}` : '';
+  const domain = origin || getAppDomain();
+  const trackingUrl = createdSlug ? `${domain}/r/${createdSlug}` : '';
+  const leadFormUrl = createdSlug ? `${domain}/c/${createdSlug}` : '';
 
   return (
     <div className="min-h-screen bg-[#FDFCF8] text-[#111111] flex flex-col justify-between p-6">
