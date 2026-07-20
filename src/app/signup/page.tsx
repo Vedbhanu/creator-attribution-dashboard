@@ -28,11 +28,11 @@ export default function SignupPage() {
         });
         if (error) throw error;
       }
-      router.push('/dashboard');
+      router.push('/onboarding');
       router.refresh();
     } catch (err: any) {
       // Fallback for instant testing
-      router.push('/dashboard');
+      router.push('/onboarding');
     } finally {
       setLoading(false);
     }
