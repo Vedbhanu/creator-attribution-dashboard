@@ -1,12 +1,92 @@
 'use client';
 
+import { useState } from 'react';
 import Link from 'next/link';
-import { DollarSign, Eye, Users, TrendingUp, Sparkles, Plus, ArrowRight } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import { DollarSign, Eye, Users, TrendingUp, Sparkles, Plus, ArrowRight, Zap, Check } from 'lucide-react';
 import { AnalyticsSummary } from '@/types/database';
 
 export function OverviewMetrics({ summary }: { summary: AnalyticsSummary }) {
+  const router = useRouter();
+  const [quickUrl, setQuickUrl] = useState('');
+  const [creating, setCreating] = useState(false);
+  const [copiedLink, setCopiedLink] = useState<string | null>(null);
+
+  const handleQuickCreate = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!quickUrl) return;
+    setCreating(true);
+
+    try {
+      // Auto-detect platform and clean slug
+      let platform = 'YouTube';
+      if (quickUrl.includes('twitter.com') || quickUrl.includes('x.com')) platform = 'Twitter/X';
+      else if (quickUrl.includes('linkedin.com')) platform = 'LinkedIn';
+      else if (quickUrl.includes('substack.com')) platform = 'Newsletter';
+
+      const title = 'Quick Post: ' + new Date().toLocaleDateString();
+      const slug = 'q-' + Math.random().toString(36).substring(2, 8);
+
+      const res = await fetch('/api/content', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          title,
+          platform,
+          url: quickUrl,
+          tracking_slug: slug
+        })
+      });
+
+      const json = await res.json();
+      if (json.success) {
+        const fullLink = `${window.location.origin}/r/${slug}`;
+        navigator.clipboard.writeText(fullLink);
+        setCopiedLink(fullLink);
+        setQuickUrl('');
+        setTimeout(() => setCopiedLink(null), 4000);
+        router.refresh();
+      }
+    } catch (err) {
+      console.error('Quick link creation failed:', err);
+    } finally {
+      setCreating(false);
+    }
+  };
+
   return (
     <div className="space-y-5">
+      {/* 1-Click Top Dashboard Quick Bar */}
+      <div className="p-4 rounded-3xl bg-white border-3 border-[#111111] shadow-[6px_6px_0px_#111111] space-y-2">
+        <form onSubmit={handleQuickCreate} className="flex flex-col sm:flex-row items-center gap-3">
+          <div className="relative flex-1 w-full">
+            <Zap className="w-4 h-4 absolute left-3.5 top-3.5 text-[#EC4899]" />
+            <input
+              type="url"
+              required
+              placeholder="Paste YouTube or post URL to generate 1-click short link..."
+              value={quickUrl}
+              onChange={(e) => setQuickUrl(e.target.value)}
+              className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-[#F7F4EC] border-2 border-[#111111] text-xs font-bold text-[#111111] focus:outline-none focus:bg-white transition-all placeholder:text-[#8A8A8A]"
+            />
+          </div>
+          <button
+            type="submit"
+            disabled={creating}
+            className="w-full sm:w-auto px-6 py-2.5 rounded-xl bg-[#EC4899] hover:bg-[#D6317C] text-white text-xs font-black border-2 border-[#111111] shadow-[3px_3px_0px_#111111] active:translate-x-[1px] active:translate-y-[1px] transition-all whitespace-nowrap flex items-center justify-center gap-1.5 disabled:opacity-50"
+          >
+            <span>{creating ? 'Generating...' : '⚡ Generate Smart Link'}</span>
+          </button>
+        </form>
+
+        {copiedLink && (
+          <div className="p-2.5 rounded-xl bg-[#F6D74C] border-2 border-[#111111] text-xs font-extrabold text-[#111111] flex items-center gap-2">
+            <Check className="w-4 h-4 text-[#EC4899]" />
+            <span>Short Link Generated & Copied to Clipboard! <code className="font-mono text-[#4A4FE0]">{copiedLink}</code></span>
+          </div>
+        )}
+      </div>
+
       {summary.total_content_items === 0 && (
         <div className="p-6 rounded-3xl bg-[#F6D74C] border-3 border-[#111111] shadow-[6px_6px_0px_#111111] flex flex-col sm:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-3">

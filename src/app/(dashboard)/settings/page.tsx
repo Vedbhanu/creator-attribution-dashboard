@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Settings, Globe, DollarSign, Key, ShieldCheck, Sparkles, Save, Check, Copy } from 'lucide-react';
+import { Settings, Globe, DollarSign, Key, ShieldCheck, Sparkles, Save, Check, Copy, Zap, CheckCircle2, RefreshCw } from 'lucide-react';
 
 export default function SettingsPage() {
   const [brandName, setBrandName] = useState('Ved Automation');
@@ -10,6 +10,10 @@ export default function SettingsPage() {
   const [webhookSecret, setWebhookSecret] = useState('whsec_creator_attrib_982374');
   const [saved, setSaved] = useState(false);
   const [copiedSecret, setCopiedSecret] = useState(false);
+  
+  // Webhook Tester State
+  const [testingWebhook, setTestingWebhook] = useState(false);
+  const [testResult, setTestResult] = useState<string | null>(null);
 
   const handleSave = (e: React.FormEvent) => {
     e.preventDefault();
@@ -21,6 +25,32 @@ export default function SettingsPage() {
     navigator.clipboard.writeText(webhookSecret);
     setCopiedSecret(true);
     setTimeout(() => setCopiedSecret(false), 2000);
+  };
+
+  const handleTestWebhook = async () => {
+    setTestingWebhook(true);
+    setTestResult(null);
+    try {
+      const res = await fetch('/api/webhooks/sales', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: 'alex.smith@example.com',
+          amount: 1.00,
+          product_name: 'Test Webhook Verification Sale'
+        })
+      });
+      const json = await res.json();
+      if (json.success) {
+        setTestResult('✅ Webhook Endpoint Live & Verified! ($1.00 attributed successfully)');
+      } else {
+        setTestResult(`⚠️ Endpoint Live: ${json.error}`);
+      }
+    } catch (err: any) {
+      setTestResult(`❌ Webhook Test Failed: ${err.message}`);
+    } finally {
+      setTestingWebhook(false);
+    }
   };
 
   return (
@@ -102,12 +132,29 @@ export default function SettingsPage() {
           </div>
         </div>
 
-        {/* API & Webhook Security */}
+        {/* API & Webhook Security + Test Button */}
         <div className="p-6 rounded-3xl bg-white border-3 border-[#111111] shadow-[5px_5px_0px_#111111] space-y-4">
-          <div className="flex items-center gap-2 border-b-2 border-[#111111] pb-3">
-            <Key className="w-5 h-5 text-[#F6D74C]" />
-            <h2 className="text-base font-black text-[#111111]">Webhook API Secret Key</h2>
+          <div className="flex items-center justify-between border-b-2 border-[#111111] pb-3">
+            <div className="flex items-center gap-2">
+              <Key className="w-5 h-5 text-[#F6D74C]" />
+              <h2 className="text-base font-black text-[#111111]">Webhook API Secret & Live Tester</h2>
+            </div>
+            <button
+              type="button"
+              onClick={handleTestWebhook}
+              disabled={testingWebhook}
+              className="px-3.5 py-1.5 rounded-xl bg-[#F6D74C] text-[#111111] border-2 border-[#111111] text-xs font-black shadow-[2px_2px_0px_#111111] inline-flex items-center gap-1.5 hover:bg-white transition-all disabled:opacity-50"
+            >
+              {testingWebhook ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <Zap className="w-3.5 h-3.5 text-[#EC4899]" />}
+              <span>{testingWebhook ? 'Testing...' : '🧪 Send Test Webhook ($1.00)'}</span>
+            </button>
           </div>
+
+          {testResult && (
+            <div className="p-3.5 rounded-xl bg-[#F7F4EC] border-2 border-[#111111] text-xs font-black text-[#111111] shadow-[2px_2px_0px_#111111]">
+              {testResult}
+            </div>
+          )}
 
           <div className="space-y-2">
             <label className="text-xs font-extrabold text-[#111111]">Sales Webhook Authorization Secret</label>
@@ -128,7 +175,7 @@ export default function SettingsPage() {
               </button>
             </div>
             <p className="text-[11px] text-[#4B4B4B] font-bold">
-              Used to secure incoming PayPal / Payoneer / Zapier purchase webhooks.
+              Webhook URL: <code>https://creator-attribution-dashboard.vercel.app/api/webhooks/sales</code>
             </p>
           </div>
         </div>

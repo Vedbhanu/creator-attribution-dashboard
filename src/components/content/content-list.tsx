@@ -3,7 +3,8 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { ContentItem, ContentAttributionMetrics } from '@/types/database';
-import { Search, ExternalLink, Copy, Check, Trash2, Plus, Sparkles } from 'lucide-react';
+import { Search, ExternalLink, Copy, Check, Trash2, Plus, Sparkles, QrCode, FileText } from 'lucide-react';
+import { getAppDomain } from '@/lib/utils';
 
 export function ContentList() {
   const [metrics, setMetrics] = useState<ContentAttributionMetrics[]>([]);
@@ -11,13 +12,13 @@ export function ContentList() {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedPlatform, setSelectedPlatform] = useState<string>('All');
   const [copiedSlug, setCopiedSlug] = useState<string | null>(null);
+  const [copiedSnippet, setCopiedSnippet] = useState<string | null>(null);
+  const [qrModalUrl, setQrModalUrl] = useState<string | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
-  const [origin, setOrigin] = useState('');
+  const [domain, setDomain] = useState('');
 
   useEffect(() => {
-    if (typeof window !== 'undefined') {
-      setOrigin(window.location.origin);
-    }
+    setDomain(getAppDomain());
     fetchContent();
   }, []);
 
@@ -36,10 +37,17 @@ export function ContentList() {
   };
 
   const handleCopyLink = (slug: string) => {
-    const fullUrl = `${origin}/r/${slug}`;
+    const fullUrl = `${domain}/r/${slug}`;
     navigator.clipboard.writeText(fullUrl);
     setCopiedSlug(slug);
     setTimeout(() => setCopiedSlug(null), 2000);
+  };
+
+  const handleCopySnippet = (slug: string, title: string) => {
+    const snippet = `🔥 ${title}\nCheck out the free resource here 👉 ${domain}/r/${slug}`;
+    navigator.clipboard.writeText(snippet);
+    setCopiedSnippet(slug);
+    setTimeout(() => setCopiedSnippet(null), 2000);
   };
 
   const handleDelete = async (id: string) => {
@@ -75,7 +83,7 @@ export function ContentList() {
         <div>
           <h1 className="text-3xl font-extrabold text-[#111111] tracking-tight">Content Library</h1>
           <p className="text-sm text-[#4B4B4B] font-semibold mt-1">
-            Manage your content links and view real-time attribution metrics.
+            Manage your content links, download QR codes, and view real-time attribution metrics.
           </p>
         </div>
 
@@ -155,27 +163,34 @@ export function ContentList() {
                   </h3>
                 </Link>
 
-                <div className="flex items-center gap-4 text-xs font-mono">
+                <div className="flex flex-wrap items-center gap-2 text-xs font-mono">
                   <div className="flex items-center gap-2 text-[#111111] bg-[#F7F4EC] px-3 py-1.5 rounded-xl border-2 border-[#111111] font-bold">
                     <span className="text-[#4B4B4B] text-[10px]">Slug:</span>
                     <span>/r/{content.tracking_slug}</span>
                     <button
                       onClick={() => handleCopyLink(content.tracking_slug)}
-                      title="Copy Tracking Link"
+                      title="Copy Short Link"
                       className="ml-1 text-[#111111] hover:text-[#EC4899]"
                     >
                       {copiedSlug === content.tracking_slug ? <Check className="w-4 h-4 text-[#EC4899]" /> : <Copy className="w-4 h-4" />}
                     </button>
                   </div>
 
-                  <a
-                    href={content.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-[#4B4B4B] font-bold hover:text-[#111111] flex items-center gap-1 text-[11px]"
+                  <button
+                    onClick={() => handleCopySnippet(content.tracking_slug, content.title)}
+                    className="px-3 py-1.5 rounded-xl bg-[#F6D74C] hover:bg-white text-[#111111] border-2 border-[#111111] font-extrabold text-[11px] inline-flex items-center gap-1 shadow-[2px_2px_0px_#111111]"
                   >
-                    Target <ExternalLink className="w-3 h-3" />
-                  </a>
+                    {copiedSnippet === content.tracking_slug ? <Check className="w-3.5 h-3.5 text-[#EC4899]" /> : <FileText className="w-3.5 h-3.5 text-[#EC4899]" />}
+                    <span>{copiedSnippet === content.tracking_slug ? 'Snippet Copied!' : 'Copy Snippet'}</span>
+                  </button>
+
+                  <button
+                    onClick={() => setQrModalUrl(`${domain}/r/${content.tracking_slug}`)}
+                    className="px-3 py-1.5 rounded-xl bg-white hover:bg-[#F7F4EC] text-[#111111] border-2 border-[#111111] font-extrabold text-[11px] inline-flex items-center gap-1 shadow-[2px_2px_0px_#111111]"
+                  >
+                    <QrCode className="w-3.5 h-3.5 text-[#4A4FE0]" />
+                    <span>QR Code</span>
+                  </button>
                 </div>
               </div>
 
@@ -212,6 +227,44 @@ export function ContentList() {
               </div>
             </div>
           ))}
+        </div>
+      )}
+
+      {/* QR Code Lightbox Modal */}
+      {qrModalUrl && (
+        <div className="fixed inset-0 z-50 bg-[#111111]/60 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white rounded-3xl border-3 border-[#111111] p-8 max-w-sm w-full text-center space-y-6 shadow-[8px_8px_0px_#111111]">
+            <div className="flex items-center justify-between border-b-2 border-[#111111] pb-3">
+              <h3 className="text-lg font-black text-[#111111]">📷 Tracking QR Code</h3>
+              <button
+                onClick={() => setQrModalUrl(null)}
+                className="text-[#111111] hover:text-[#EC4899] font-black text-sm"
+              >
+                ✕
+              </button>
+            </div>
+
+            <div className="p-4 bg-white rounded-2xl border-2 border-[#111111] inline-block shadow-[3px_3px_0px_#111111]">
+              <img
+                src={`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(qrModalUrl)}`}
+                alt="QR Code"
+                className="w-48 h-48 mx-auto"
+              />
+            </div>
+
+            <p className="text-xs font-mono text-[#4A4FE0] font-bold truncate">{qrModalUrl}</p>
+
+            <div className="flex gap-2">
+              <a
+                href={`https://api.qrserver.com/v1/create-qr-code/?size=500x500&data=${encodeURIComponent(qrModalUrl)}`}
+                target="_blank"
+                download="tracking-qr.png"
+                className="w-full py-3 rounded-xl bg-[#EC4899] hover:bg-[#D6317C] text-white font-extrabold text-xs border-2 border-[#111111] shadow-[2px_2px_0px_#111111]"
+              >
+                Download HD QR Code
+              </a>
+            </div>
+          </div>
         </div>
       )}
     </div>

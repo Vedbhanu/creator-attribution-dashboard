@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { ContentItem } from '@/types/database';
-import { Sparkles, CheckCircle2, ArrowRight, ShieldCheck, Mail, Phone } from 'lucide-react';
+import { Sparkles, CheckCircle2, ArrowRight, ShieldCheck, Mail, Phone, ExternalLink } from 'lucide-react';
 
 export default function HostedLeadCapturePage({ params }: { params: { slug: string } }) {
   const [content, setContent] = useState<ContentItem | null>(null);
@@ -11,6 +11,7 @@ export default function HostedLeadCapturePage({ params }: { params: { slug: stri
   const [phone, setPhone] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+  const [countdown, setCountdown] = useState(2);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -57,11 +58,19 @@ export default function HostedLeadCapturePage({ params }: { params: { slug: stri
       }
 
       setSubmitted(true);
-      const targetRedirect = content?.destination_url || content?.url;
+      const targetRedirect = content?.url;
+      
+      // 2-second countdown timer with progress bar
       if (targetRedirect) {
-        setTimeout(() => {
-          window.location.href = targetRedirect;
-        }, 2000);
+        let timer = 2;
+        const interval = setInterval(() => {
+          timer -= 1;
+          setCountdown(timer);
+          if (timer <= 0) {
+            clearInterval(interval);
+            window.location.href = targetRedirect;
+          }
+        }, 1000);
       }
     } catch (err: any) {
       setError(err.message);
@@ -80,7 +89,7 @@ export default function HostedLeadCapturePage({ params }: { params: { slug: stri
 
   return (
     <div className="min-h-screen bg-[#FDFCF8] text-[#111111] flex flex-col justify-between">
-      {/* Top Banner (VedBhanu style) */}
+      {/* Top Banner */}
       <div className="bg-[#F6D74C] border-b-3 border-[#111111] text-center py-2.5 px-4 font-extrabold text-xs text-[#111111]">
         ⚡ Priority Access Form — Instant Attribution Verified
       </div>
@@ -88,22 +97,37 @@ export default function HostedLeadCapturePage({ params }: { params: { slug: stri
       <div className="flex-1 flex items-center justify-center p-4 my-8">
         <div className="w-full max-w-lg p-8 rounded-3xl bg-white border-3 border-[#111111] shadow-[6px_6px_0px_#111111] space-y-6">
           {submitted ? (
-            <div className="text-center py-8 space-y-5">
+            <div className="text-center py-6 space-y-5">
               <div className="w-16 h-16 rounded-full bg-[#EC4899] text-white border-2 border-[#111111] shadow-[3px_3px_0px_#111111] flex items-center justify-center mx-auto">
-                <CheckCircle2 className="w-8 h-8" />
+                <CheckCircle2 className="w-8 h-8 text-white" />
               </div>
               <div className="space-y-2">
-                <h2 className="text-2xl font-black text-[#111111]">Thank You!</h2>
-                <p className="text-sm text-[#4B4B4B] font-semibold">
-                  Your details have been registered. Access confirmation has been sent to <span className="text-[#4A4FE0] font-extrabold">{email}</span>.
+                <h2 className="text-2xl font-black text-[#111111]">Access Granted!</h2>
+                <p className="text-xs text-[#4B4B4B] font-bold">
+                  Your lead details have been attributed. Access link sent to <span className="text-[#4A4FE0] font-black">{email}</span>.
                 </p>
               </div>
+
+              {/* Smooth Visual Progress Bar */}
+              <div className="p-4 rounded-2xl bg-[#F7F4EC] border-2 border-[#111111] space-y-2 text-left">
+                <div className="flex justify-between text-xs font-extrabold text-[#111111]">
+                  <span>Redirecting to Content...</span>
+                  <span className="text-[#EC4899]">{countdown}s</span>
+                </div>
+                <div className="h-3 rounded-full bg-white border-2 border-[#111111] overflow-hidden">
+                  <div 
+                    className="h-full bg-[#EC4899] transition-all duration-1000"
+                    style={{ width: `${(countdown / 2) * 100}%` }}
+                  ></div>
+                </div>
+              </div>
+
               {content?.url && (
                 <a
                   href={content.url}
-                  className="inline-flex items-center gap-2 px-6 py-3.5 rounded-xl bg-[#EC4899] hover:bg-[#D6317C] text-white font-extrabold text-sm border-2 border-[#111111] shadow-[4px_4px_0px_#111111] active:translate-x-[2px] active:translate-y-[2px] active:shadow-[2px_2px_0px_#111111] transition-all"
+                  className="inline-flex items-center gap-2 px-6 py-3.5 rounded-xl bg-[#EC4899] hover:bg-[#D6317C] text-white font-black text-sm border-2 border-[#111111] shadow-[4px_4px_0px_#111111] active:translate-x-[2px] active:translate-y-[2px] active:shadow-[2px_2px_0px_#111111] transition-all"
                 >
-                  Continue to Original Content <ArrowRight className="w-4 h-4" />
+                  Click Here to Redirect Now <ExternalLink className="w-4 h-4" />
                 </a>
               )}
             </div>

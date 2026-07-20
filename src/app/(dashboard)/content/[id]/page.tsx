@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { ContentAttributionMetrics, Lead, Sale } from '@/types/database';
-import { ArrowLeft, Copy, Check, ExternalLink, Users, DollarSign, TrendingUp, Sparkles, Eye, FileText, Calendar, CheckCircle2, Play, Zap } from 'lucide-react';
+import { ArrowLeft, Copy, Check, ExternalLink, Users, DollarSign, TrendingUp, Sparkles, Eye, FileText, Calendar, CheckCircle2, Play, Zap, QrCode } from 'lucide-react';
 import { getAppDomain } from '@/lib/utils';
 
 export default function ContentDetailPage({ params }: { params: { id: string } }) {
@@ -14,6 +14,7 @@ export default function ContentDetailPage({ params }: { params: { id: string } }
   const [sales, setSales] = useState<Sale[]>([]);
   const [loading, setLoading] = useState(true);
   const [copied, setCopied] = useState<string | null>(null);
+  const [qrModalOpen, setQrModalOpen] = useState(false);
   const [domain, setDomain] = useState('');
 
   useEffect(() => {
@@ -55,6 +56,14 @@ export default function ContentDetailPage({ params }: { params: { id: string } }
   const copyToClipboard = (text: string, label: string) => {
     navigator.clipboard.writeText(text);
     setCopied(label);
+    setTimeout(() => setCopied(null), 2000);
+  };
+
+  const handleCopySnippet = () => {
+    if (!metrics) return;
+    const snippet = `🔥 ${metrics.content.title}\nCheck out the free resource here 👉 ${domain}/r/${metrics.content.tracking_slug}`;
+    navigator.clipboard.writeText(snippet);
+    setCopied('snippet');
     setTimeout(() => setCopied(null), 2000);
   };
 
@@ -141,14 +150,27 @@ export default function ContentDetailPage({ params }: { params: { id: string } }
             <h1 className="text-2xl font-black text-[#111111] leading-tight">{content.title}</h1>
 
             <div className="flex flex-wrap items-center gap-3">
-              <span className="px-3 py-1 rounded-xl bg-[#F7F4EC] border-2 border-[#111111] text-xs font-mono font-bold text-[#4A4FE0]">
-                /r/{content.tracking_slug}
-              </span>
+              <button
+                onClick={handleCopySnippet}
+                className="px-3 py-1.5 rounded-xl bg-[#F6D74C] text-[#111111] border-2 border-[#111111] text-xs font-black shadow-[2px_2px_0px_#111111] hover:bg-white transition-all inline-flex items-center gap-1"
+              >
+                {copied === 'snippet' ? <Check className="w-3.5 h-3.5 text-[#EC4899]" /> : <FileText className="w-3.5 h-3.5 text-[#EC4899]" />}
+                <span>{copied === 'snippet' ? 'Snippet Copied!' : '📋 Copy YouTube Snippet'}</span>
+              </button>
+
+              <button
+                onClick={() => setQrModalOpen(true)}
+                className="px-3 py-1.5 rounded-xl bg-white text-[#111111] border-2 border-[#111111] text-xs font-black shadow-[2px_2px_0px_#111111] hover:bg-[#F7F4EC] transition-all inline-flex items-center gap-1"
+              >
+                <QrCode className="w-3.5 h-3.5 text-[#4A4FE0]" />
+                <span>📷 Download QR Code</span>
+              </button>
+
               <a
                 href={content.url}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl bg-[#F6D74C] text-[#111111] border-2 border-[#111111] text-xs font-black shadow-[2px_2px_0px_#111111] hover:bg-white transition-all"
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#4A4FE0] text-white border-2 border-[#111111] text-xs font-black shadow-[2px_2px_0px_#111111] hover:bg-[#3b40cc] transition-all"
               >
                 View Video <ExternalLink className="w-3.5 h-3.5" />
               </a>
@@ -301,6 +323,44 @@ export default function ContentDetailPage({ params }: { params: { id: string } }
           )}
         </div>
       </div>
+
+      {/* QR Code Lightbox Modal */}
+      {qrModalOpen && (
+        <div className="fixed inset-0 z-50 bg-[#111111]/60 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white rounded-3xl border-3 border-[#111111] p-8 max-w-sm w-full text-center space-y-6 shadow-[8px_8px_0px_#111111]">
+            <div className="flex items-center justify-between border-b-2 border-[#111111] pb-3">
+              <h3 className="text-lg font-black text-[#111111]">📷 Tracking QR Code</h3>
+              <button
+                onClick={() => setQrModalOpen(false)}
+                className="text-[#111111] hover:text-[#EC4899] font-black text-sm"
+              >
+                ✕
+              </button>
+            </div>
+
+            <div className="p-4 bg-white rounded-2xl border-2 border-[#111111] inline-block shadow-[3px_3px_0px_#111111]">
+              <img
+                src={`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(trackingUrl)}`}
+                alt="QR Code"
+                className="w-48 h-48 mx-auto"
+              />
+            </div>
+
+            <p className="text-xs font-mono text-[#4A4FE0] font-bold truncate">{trackingUrl}</p>
+
+            <div className="flex gap-2">
+              <a
+                href={`https://api.qrserver.com/v1/create-qr-code/?size=500x500&data=${encodeURIComponent(trackingUrl)}`}
+                target="_blank"
+                download="tracking-qr.png"
+                className="w-full py-3 rounded-xl bg-[#EC4899] hover:bg-[#D6317C] text-white font-extrabold text-xs border-2 border-[#111111] shadow-[2px_2px_0px_#111111]"
+              >
+                Download HD QR Code
+              </a>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
