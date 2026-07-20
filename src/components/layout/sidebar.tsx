@@ -2,13 +2,14 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { LayoutDashboard, FileText, Users, DollarSign, Sparkles } from 'lucide-react';
+import { LayoutDashboard, FileText, Users, DollarSign, Settings, Sparkles } from 'lucide-react';
 
 const NAV_ITEMS = [
   { name: 'Analytics Dashboard', href: '/dashboard', icon: LayoutDashboard },
   { name: 'Content Library', href: '/content', icon: FileText },
   { name: 'Captured Leads', href: '/leads', icon: Users },
   { name: 'Sales & Revenue', href: '/sales', icon: DollarSign },
+  { name: 'Workspace Settings', href: '/settings', icon: Settings },
 ];
 
 export function Sidebar() {
@@ -18,7 +19,7 @@ export function Sidebar() {
     <aside className="w-64 border-r-3 border-[#111111] bg-[#FDFCF8] flex flex-col justify-between h-screen sticky top-0 z-30">
       <div>
         {/* Brand Header */}
-        <Link href="/welcome" className="p-6 border-b-2 border-[#111111] bg-[#F6D74C] flex items-center gap-3 block">
+        <Link href="/" className="p-6 border-b-2 border-[#111111] bg-[#F6D74C] flex items-center gap-3 block">
           <div className="w-10 h-10 rounded-xl bg-[#EC4899] text-white border-2 border-[#111111] flex items-center justify-center shadow-[3px_3px_0px_#111111]">
             <Sparkles className="w-5 h-5 text-white" />
           </div>
