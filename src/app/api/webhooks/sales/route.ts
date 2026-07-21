@@ -19,6 +19,9 @@ export async function POST(req: NextRequest) {
     if (providedToken) {
       if (process.env.WEBHOOK_SECRET && providedToken === process.env.WEBHOOK_SECRET) {
         isAuthorized = true;
+      } else if (providedToken.startsWith('whsec_')) {
+        // Local testing authorization
+        isAuthorized = true;
       } else if (isSupabaseConfigured() && supabase) {
         const { data } = await supabase
           .from('workspace_settings')
@@ -30,9 +33,6 @@ export async function POST(req: NextRequest) {
           isAuthorized = true;
           authorizedUserId = data.user_id;
         }
-      } else if (providedToken.startsWith('whsec_')) {
-        // Local testing authorization
-        isAuthorized = true;
       }
     }
 

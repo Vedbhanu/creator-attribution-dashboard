@@ -32,7 +32,8 @@ async function runLiveE2ETest() {
         title: 'Live Test Video: How to Scale Creator Revenue',
         platform: 'YouTube',
         url: 'https://youtube.com/watch?v=live123test',
-        tracking_slug: createdSlug
+        tracking_slug: createdSlug,
+        userId: 'live_test_user'
       })
     });
     const json = await res.json();

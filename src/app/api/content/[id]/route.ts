@@ -8,7 +8,7 @@ export async function GET(request: Request, { params }: { params: { id: string }
       return NextResponse.json({ success: false, error: 'Content item not found' }, { status: 404 });
     }
 
-    const allMetrics = await storage.getAttributionMetrics();
+    const allMetrics = await storage.getAttributionMetrics((item as any).user_id || 'demo');
     const itemMetrics = allMetrics.find(m => m.content.id === params.id);
 
     return NextResponse.json({ success: true, data: item, metrics: itemMetrics });
