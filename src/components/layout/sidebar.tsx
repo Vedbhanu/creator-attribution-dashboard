@@ -1,27 +1,43 @@
 'use client';
 
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { LayoutDashboard, FileText, Users, DollarSign, Settings, Sparkles, ShieldCheck } from 'lucide-react';
 
-const NAV_ITEMS = [
+const BASE_NAV_ITEMS = [
   { name: 'Analytics Dashboard', href: '/dashboard', icon: LayoutDashboard },
   { name: 'Content Library', href: '/content', icon: FileText },
   { name: 'Captured Leads', href: '/leads', icon: Users },
   { name: 'Sales & Revenue', href: '/sales', icon: DollarSign },
   { name: 'Workspace Settings', href: '/settings', icon: Settings },
-  { name: 'Agency Admin 👑', href: '/admin', icon: ShieldCheck },
 ];
 
 export function Sidebar() {
   const pathname = usePathname();
+  const [isAdmin, setIsAdmin] = useState(false);
+
+  useEffect(() => {
+    const storedRole = typeof window !== 'undefined' ? localStorage.getItem('user_role') : null;
+    const storedEmail = typeof window !== 'undefined' ? localStorage.getItem('user_email') : null;
+
+    if (storedRole === 'admin' || storedEmail === 'abdbhanu1212@gmail.com') {
+      setIsAdmin(true);
+    } else {
+      setIsAdmin(false);
+    }
+  }, [pathname]);
+
+  const navItems = isAdmin
+    ? [...BASE_NAV_ITEMS, { name: 'Agency Admin 👑', href: '/admin', icon: ShieldCheck }]
+    : BASE_NAV_ITEMS;
 
   return (
     <aside className="w-64 border-r-3 border-[#111111] bg-[#FDFCF8] flex flex-col justify-between h-screen sticky top-0 z-30">
       <div>
         {/* Brand Header */}
         <Link href="/" className="p-6 border-b-2 border-[#111111] bg-[#F6D74C] flex items-center gap-3 block">
-          <div className="w-10 h-10 rounded-xl bg-[#EC4899] text-white border-2 border-[#111111] flex items-center justify-center shadow-[3px_3px_0px_#111111]">
+          <div className="w-10 h-10 rounded-xl bg-[#4A4FE0] text-white border-2 border-[#111111] flex items-center justify-center shadow-[3px_3px_0px_#111111]">
             <Sparkles className="w-5 h-5 text-white" />
           </div>
           <div>
@@ -32,7 +48,7 @@ export function Sidebar() {
 
         {/* Navigation Links */}
         <nav className="p-4 space-y-2">
-          {NAV_ITEMS.map((item) => {
+          {navItems.map((item) => {
             const Icon = item.icon;
             const isActive = pathname === item.href || (item.href !== '/dashboard' && pathname.startsWith(item.href));
 
@@ -42,7 +58,7 @@ export function Sidebar() {
                 href={item.href}
                 className={`flex items-center gap-3 px-4 py-3 rounded-xl font-bold text-sm border-2 border-[#111111] transition-all ${
                   isActive
-                    ? 'bg-[#EC4899] text-white shadow-[3px_3px_0px_#111111] translate-x-0'
+                    ? 'bg-[#4A4FE0] text-white shadow-[3px_3px_0px_#111111] translate-x-0'
                     : 'bg-white text-[#111111] hover:bg-[#F7F4EC] shadow-[2px_2px_0px_#111111]'
                 }`}
               >

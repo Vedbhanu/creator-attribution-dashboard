@@ -62,7 +62,8 @@ export default function AgencyAdminPage() {
   useEffect(() => {
     // Check local session or admin email
     const storedRole = typeof window !== 'undefined' ? localStorage.getItem('user_role') : null;
-    const isVedAdmin = true; // Set to true for Ved Admin session view
+    const storedEmail = typeof window !== 'undefined' ? localStorage.getItem('user_email') : null;
+    const isVedAdmin = storedRole === 'admin' || storedEmail === 'abdbhanu1212@gmail.com';
     setIsAdminAuthorized(isVedAdmin);
   }, []);
 
