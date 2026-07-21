@@ -3,8 +3,8 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { Sparkles, Mail, Lock, ArrowRight, ShieldCheck } from 'lucide-react';
-import { supabase } from '@/lib/supabase';
+import { Sparkles, Mail, Lock, ArrowRight, ShieldCheck, AlertCircle } from 'lucide-react';
+import { isSupabaseConfigured, supabase } from '@/lib/supabase';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -19,12 +19,24 @@ export default function LoginPage() {
     setLoading(true);
 
     try {
-      if (supabase) {
-        const { error } = await supabase.auth.signInWithPassword({
+      if (isSupabaseConfigured() && supabase) {
+        const { error: authError } = await supabase.auth.signInWithPassword({
           email,
           password,
         });
-        if (error) console.warn('Supabase auth note:', error.message);
+
+        if (authError) {
+          setError('Invalid email or password. Please verify your credentials and try again.');
+          setLoading(false);
+          return;
+        }
+      } else {
+        // Validation check in local mode
+        if (!email.includes('@') || password.length < 4) {
+          setError('Please enter a valid email and password.');
+          setLoading(false);
+          return;
+        }
       }
 
       // Save user session details locally
@@ -43,7 +55,7 @@ export default function LoginPage() {
       router.push('/dashboard');
       router.refresh();
     } catch (err: any) {
-      router.push('/dashboard');
+      setError(err.message || 'Login failed. Please check your credentials.');
     } finally {
       setLoading(false);
     }
@@ -54,7 +66,7 @@ export default function LoginPage() {
       <div className="w-full max-w-md p-8 rounded-3xl bg-white border-3 border-[#111111] shadow-[8px_8px_0px_#111111] space-y-6">
         <div className="text-center space-y-3">
           <div className="w-12 h-12 rounded-2xl bg-[#4A4FE0] text-white border-2 border-[#111111] flex items-center justify-center mx-auto shadow-[3px_3px_0px_#111111]">
-            <Sparkles className="w-6 h-6" />
+            <Sparkles className="w-6 h-6 text-[#F6D74C]" />
           </div>
           <h1 className="text-2xl font-black text-[#111111] tracking-tight">Creator Login</h1>
           <p className="text-xs text-[#4B4B4B] font-semibold">
@@ -63,8 +75,9 @@ export default function LoginPage() {
         </div>
 
         {error && (
-          <div className="p-3 rounded-xl bg-rose-500/10 border-2 border-rose-500 text-rose-600 text-xs font-bold">
-            {error}
+          <div className="p-3.5 rounded-xl bg-rose-100 border-2 border-[#111111] text-[#111111] text-xs font-bold flex items-center gap-2.5 shadow-[3px_3px_0px_#111111]">
+            <AlertCircle className="w-4 h-4 text-rose-600 flex-shrink-0" />
+            <span>{error}</span>
           </div>
         )}
 
@@ -85,7 +98,12 @@ export default function LoginPage() {
           </div>
 
           <div className="space-y-1.5">
-            <label className="text-xs font-extrabold text-[#111111]">Password</label>
+            <div className="flex items-center justify-between">
+              <label className="text-xs font-extrabold text-[#111111]">Password</label>
+              <Link href="/forgot-password" className="text-[11px] font-extrabold text-[#4A4FE0] hover:underline">
+                Forgot Password?
+              </Link>
+            </div>
             <div className="relative">
               <Lock className="w-4 h-4 absolute left-3.5 top-3.5 text-[#111111]" />
               <input
