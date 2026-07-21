@@ -16,10 +16,13 @@ const BASE_NAV_ITEMS = [
 export function Sidebar() {
   const pathname = usePathname();
   const [isAdmin, setIsAdmin] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
 
   useEffect(() => {
     const storedRole = typeof window !== 'undefined' ? localStorage.getItem('user_role') : null;
     const storedEmail = typeof window !== 'undefined' ? localStorage.getItem('user_email') : null;
+
+    setIsLoggedIn(!!storedEmail);
 
     if (storedRole === 'admin' || storedEmail === 'abdbhanu1212@gmail.com') {
       setIsAdmin(true);
@@ -85,19 +88,28 @@ export function Sidebar() {
           </p>
         </div>
 
-        <button
-          onClick={() => {
-            if (typeof window !== 'undefined') {
-              localStorage.removeItem('user_email');
-              localStorage.removeItem('user_role');
-              localStorage.removeItem('user_name');
-            }
-            window.location.href = '/login';
-          }}
-          className="w-full py-2.5 rounded-xl bg-white hover:bg-rose-100 text-rose-600 font-extrabold text-xs border-2 border-[#111111] shadow-[2px_2px_0px_#111111] active:translate-x-[1px] active:translate-y-[1px] active:shadow-[1px_1px_0px_#111111] transition-all flex items-center justify-center gap-2"
-        >
-          <span>Log Out →</span>
-        </button>
+        {isLoggedIn ? (
+          <button
+            onClick={() => {
+              if (typeof window !== 'undefined') {
+                localStorage.removeItem('user_email');
+                localStorage.removeItem('user_role');
+                localStorage.removeItem('user_name');
+              }
+              window.location.href = '/login';
+            }}
+            className="w-full py-2.5 rounded-xl bg-white hover:bg-rose-100 text-rose-600 font-extrabold text-xs border-2 border-[#111111] shadow-[2px_2px_0px_#111111] active:translate-x-[1px] active:translate-y-[1px] active:shadow-[1px_1px_0px_#111111] transition-all flex items-center justify-center gap-2"
+          >
+            <span>Log Out →</span>
+          </button>
+        ) : (
+          <Link
+            href="/login"
+            className="w-full py-2.5 rounded-xl bg-[#4A4FE0] hover:bg-[#3b40cc] text-white font-extrabold text-xs border-2 border-[#111111] shadow-[2px_2px_0px_#111111] active:translate-x-[1px] active:translate-y-[1px] active:shadow-[1px_1px_0px_#111111] transition-all flex items-center justify-center gap-2"
+          >
+            <span>Sign In / Create Account →</span>
+          </Link>
+        )}
       </div>
     </aside>
   );
