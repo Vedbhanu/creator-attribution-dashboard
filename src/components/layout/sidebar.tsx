@@ -54,18 +54,34 @@ export function Sidebar() {
         </nav>
       </div>
 
-      {/* Footer / Quick Info */}
-      <div className="p-4 border-2 border-[#111111] m-4 rounded-xl bg-[#F7F4EC] shadow-[3px_3px_0px_#111111] text-xs text-[#111111] space-y-2">
-        <div className="flex items-center justify-between font-extrabold">
-          <span>Engine Status</span>
-          <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-[#4A4FE0] text-white text-[10px] border border-[#111111]">
-            <span className="w-2 h-2 rounded-full bg-[#F6D74C] animate-pulse"></span>
-            Active
-          </span>
+      {/* Footer / Quick Info & Logout */}
+      <div className="p-4 space-y-3">
+        <div className="p-3.5 border-2 border-[#111111] rounded-xl bg-[#F7F4EC] shadow-[3px_3px_0px_#111111] text-xs text-[#111111] space-y-2">
+          <div className="flex items-center justify-between font-extrabold">
+            <span>Engine Status</span>
+            <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-[#4A4FE0] text-white text-[10px] border border-[#111111]">
+              <span className="w-2 h-2 rounded-full bg-[#F6D74C] animate-pulse"></span>
+              Active
+            </span>
+          </div>
+          <p className="text-[#4B4B4B] text-[11px] font-medium leading-relaxed">
+            Tracking links active & attributing visitors in real time.
+          </p>
         </div>
-        <p className="text-[#4B4B4B] text-[11px] font-medium leading-relaxed">
-          Tracking links active & attributing visitors in real time.
-        </p>
+
+        <button
+          onClick={() => {
+            if (typeof window !== 'undefined') {
+              localStorage.removeItem('user_email');
+              localStorage.removeItem('user_role');
+              localStorage.removeItem('user_name');
+            }
+            window.location.href = '/login';
+          }}
+          className="w-full py-2.5 rounded-xl bg-white hover:bg-rose-100 text-rose-600 font-extrabold text-xs border-2 border-[#111111] shadow-[2px_2px_0px_#111111] active:translate-x-[1px] active:translate-y-[1px] active:shadow-[1px_1px_0px_#111111] transition-all flex items-center justify-center gap-2"
+        >
+          <span>Log Out →</span>
+        </button>
       </div>
     </aside>
   );

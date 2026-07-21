@@ -1,45 +1,85 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
-import { Plus, UserCheck, Zap, Shield, Sparkles } from 'lucide-react';
-import { isSupabaseConfigured } from '@/lib/supabase';
+import { useRouter, usePathname } from 'next/navigation';
+import { Plus, UserCheck, Zap, LogOut, Settings, ShieldCheck, ChevronDown } from 'lucide-react';
+import { isSupabaseConfigured, supabase } from '@/lib/supabase';
+import { useToast } from '@/components/ui/toast';
 
 export function Header() {
+  const router = useRouter();
   const pathname = usePathname();
+  const { showToast } = useToast();
   const hasSupabase = isSupabaseConfigured();
 
   const [brandName, setBrandName] = useState('Demo Creator Workspace');
   const [userName, setUserName] = useState('Demo Creator');
-  const [accountTag, setAccountTag] = useState('Sample Sandbox Data');
+  const [userEmail, setUserEmail] = useState('demo@creator.com');
+  const [accountTag, setAccountTag] = useState('Sample Sandbox');
   const [isAdmin, setIsAdmin] = useState(false);
+  const [dropdownOpen, setDropdownOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    // Check if user has saved workspace settings or logged in session
-    fetch('/api/settings')
-      .then((res) => res.json())
-      .then((data) => {
-        if (data.success && data.settings) {
-          setBrandName(data.settings.brand_name || 'Ved Automation Workspace');
-          
-          // Check if admin account
-          if (data.settings.user_id === 'admin' || data.settings.brand_name?.includes('Ved Automation')) {
-            setUserName('Ved Bhanu');
-            setAccountTag('Agency Admin 👑');
-            setIsAdmin(true);
-          } else {
-            setUserName(data.settings.brand_name || 'Creator Pro');
-            setAccountTag('Creator Workspace');
+    // Read local user session
+    const storedEmail = typeof window !== 'undefined' ? localStorage.getItem('user_email') : null;
+    const storedRole = typeof window !== 'undefined' ? localStorage.getItem('user_role') : null;
+    const storedName = typeof window !== 'undefined' ? localStorage.getItem('user_name') : null;
+
+    if (storedEmail) {
+      setUserEmail(storedEmail);
+      if (storedRole === 'admin' || storedEmail === 'abdbhanu1212@gmail.com') {
+        setUserName('Ved Bhanu');
+        setAccountTag('Agency Admin 👑');
+        setBrandName('Ved Automation Agency');
+        setIsAdmin(true);
+      } else {
+        setUserName(storedName || storedEmail.split('@')[0]);
+        setAccountTag('Creator Workspace');
+        setBrandName(`${storedName || 'Creator'}'s Workspace`);
+        setIsAdmin(false);
+      }
+    } else {
+      // Default Demo Mode
+      fetch('/api/settings')
+        .then((res) => res.json())
+        .then((data) => {
+          if (data.success && data.settings) {
+            setBrandName(data.settings.brand_name || 'Ved Automation Workspace');
           }
-        }
-      })
-      .catch(() => {
-        setBrandName('Demo Creator Workspace');
-        setUserName('Demo Creator');
-        setAccountTag('Sample Sandbox');
-      });
+        })
+        .catch(() => setBrandName('Demo Creator Workspace'));
+    }
+
+    // Close dropdown on outside click
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setDropdownOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
+
+  const handleLogout = async () => {
+    try {
+      if (typeof window !== 'undefined') {
+        localStorage.removeItem('user_email');
+        localStorage.removeItem('user_role');
+        localStorage.removeItem('user_name');
+      }
+      if (supabase) {
+        await supabase.auth.signOut();
+      }
+      showToast('👋 Logged out successfully!');
+      router.push('/login');
+      router.refresh();
+    } catch (err) {
+      console.error(err);
+      window.location.href = '/login';
+    }
+  };
 
   return (
     <header className="sticky top-0 z-20">
@@ -70,15 +110,62 @@ export function Header() {
             Add Content Item
           </Link>
 
-          <Link href="/settings" className="flex items-center gap-2 pl-4 border-l-2 border-[#111111] group">
-            <div className="w-9 h-9 rounded-full bg-[#F6D74C] border-2 border-[#111111] flex items-center justify-center text-[#111111] font-extrabold shadow-[2px_2px_0px_#111111] group-hover:bg-[#4A4FE0] group-hover:text-white transition-colors">
-              <UserCheck className="w-4 h-4" />
-            </div>
-            <div className="text-left hidden sm:block">
-              <p className="text-xs font-extrabold text-[#111111] group-hover:text-[#4A4FE0]">{userName}</p>
-              <p className="text-[10px] text-[#4B4B4B] font-bold">{accountTag}</p>
-            </div>
-          </Link>
+          {/* User Profile Pill & Dropdown */}
+          <div className="relative" ref={dropdownRef}>
+            <button
+              onClick={() => setDropdownOpen(!dropdownOpen)}
+              className="flex items-center gap-2 pl-4 border-l-2 border-[#111111] group focus:outline-none"
+            >
+              <div className="w-9 h-9 rounded-full bg-[#F6D74C] border-2 border-[#111111] flex items-center justify-center text-[#111111] font-extrabold shadow-[2px_2px_0px_#111111] group-hover:bg-[#4A4FE0] group-hover:text-white transition-colors">
+                <UserCheck className="w-4 h-4" />
+              </div>
+              <div className="text-left hidden sm:block">
+                <p className="text-xs font-extrabold text-[#111111] group-hover:text-[#4A4FE0] flex items-center gap-1">
+                  <span>{userName}</span>
+                  <ChevronDown className="w-3.5 h-3.5" />
+                </p>
+                <p className="text-[10px] text-[#4B4B4B] font-bold">{accountTag}</p>
+              </div>
+            </button>
+
+            {/* Dropdown Menu */}
+            {dropdownOpen && (
+              <div className="absolute right-0 mt-2 w-56 p-2 rounded-2xl bg-white border-3 border-[#111111] shadow-[6px_6px_0px_#111111] z-50 space-y-1">
+                <div className="p-3 border-b-2 border-[#111111] bg-[#F7F4EC] rounded-xl text-left">
+                  <p className="text-xs font-black text-[#111111] truncate">{userName}</p>
+                  <p className="text-[10px] font-mono font-bold text-[#4B4B4B] truncate">{userEmail}</p>
+                </div>
+
+                <Link
+                  href="/settings"
+                  onClick={() => setDropdownOpen(false)}
+                  className="w-full px-3 py-2 rounded-xl text-xs font-extrabold text-[#111111] hover:bg-[#F7F4EC] flex items-center gap-2 transition-colors"
+                >
+                  <Settings className="w-4 h-4 text-[#4A4FE0]" />
+                  <span>Workspace Settings</span>
+                </Link>
+
+                {isAdmin && (
+                  <Link
+                    href="/admin"
+                    onClick={() => setDropdownOpen(false)}
+                    className="w-full px-3 py-2 rounded-xl text-xs font-extrabold text-[#111111] hover:bg-[#F6D74C] flex items-center gap-2 transition-colors"
+                  >
+                    <ShieldCheck className="w-4 h-4 text-[#111111]" />
+                    <span>Agency Admin 👑</span>
+                  </Link>
+                )}
+
+                <button
+                  onClick={handleLogout}
+                  className="w-full px-3 py-2 rounded-xl text-xs font-black text-rose-600 hover:bg-rose-100 flex items-center gap-2 transition-colors border-t border-[#111111]/10 pt-2"
+                >
+                  <LogOut className="w-4 h-4 text-rose-600" />
+                  <span>Log Out →</span>
+                </button>
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </header>
