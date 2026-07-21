@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { Sparkles, Mail, Lock, ArrowRight, ShieldCheck, AlertCircle, KeyRound } from 'lucide-react';
+import { Sparkles, Mail, Lock, ArrowRight, ShieldCheck, AlertCircle, KeyRound, ArrowLeft } from 'lucide-react';
 import { isSupabaseConfigured, supabase } from '@/lib/supabase';
 
 export default function LoginPage() {
@@ -62,7 +62,17 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#FDFCF8] flex items-center justify-center p-4">
+    <div className="min-h-screen bg-[#FDFCF8] flex flex-col items-center justify-center p-4 relative">
+      {/* Top Right Back to Sales Page Button */}
+      <div className="w-full max-w-md flex justify-end pb-3">
+        <Link
+          href="/welcome"
+          className="px-4 py-2.5 rounded-xl bg-white hover:bg-[#F7F4EC] text-[#111111] font-extrabold text-xs border-2 border-[#111111] shadow-[3px_3px_0px_#111111] active:translate-x-[1px] active:translate-y-[1px] active:shadow-[1px_1px_0px_#111111] transition-all inline-flex items-center gap-1.5"
+        >
+          <ArrowLeft className="w-4 h-4 text-[#4A4FE0]" />
+          <span>← Back to Sales Page</span>
+        </Link>
+      </div>
       <div className="w-full max-w-md p-8 rounded-3xl bg-white border-3 border-[#111111] shadow-[8px_8px_0px_#111111] space-y-6">
         <div className="text-center space-y-3">
           <div className="w-12 h-12 rounded-2xl bg-[#4A4FE0] text-white border-2 border-[#111111] flex items-center justify-center mx-auto shadow-[3px_3px_0px_#111111]">

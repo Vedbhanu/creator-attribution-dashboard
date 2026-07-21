@@ -2,7 +2,8 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { Sparkles, ArrowRight, Check, Copy, ExternalLink, Globe, DollarSign, Video, CheckCircle2 } from 'lucide-react';
+import Link from 'next/link';
+import { Sparkles, ArrowRight, Check, Copy, ExternalLink, Globe, DollarSign, Video, CheckCircle2, ArrowLeft } from 'lucide-react';
 import { getAppDomain, generateShortSlug } from '@/lib/utils';
 
 export default function OnboardingWizardPage() {
@@ -83,25 +84,57 @@ export default function OnboardingWizardPage() {
       {/* Header */}
       <header className="max-w-4xl mx-auto w-full flex items-center justify-between py-4 border-b-2 border-[#111111]/10">
         <div className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded-xl bg-[#EC4899] text-white border-2 border-[#111111] shadow-[2px_2px_0px_#111111] flex items-center justify-center font-black">
-            <Sparkles className="w-5 h-5 text-white" />
+          <div className="w-9 h-9 rounded-xl bg-[#4A4FE0] text-white border-2 border-[#111111] shadow-[2px_2px_0px_#111111] flex items-center justify-center font-black">
+            <Sparkles className="w-5 h-5 text-[#F6D74C]" />
           </div>
           <span className="text-base font-black text-[#111111] tracking-tight">Creator Attrib Setup</span>
         </div>
 
-        {/* Progress Bar Dots */}
-        <div className="flex items-center gap-3">
-          <div className={`w-8 h-8 rounded-full border-2 border-[#111111] flex items-center justify-center text-xs font-black transition-all ${step === 1 ? 'bg-[#EC4899] text-white shadow-[2px_2px_0px_#111111]' : step > 1 ? 'bg-[#F6D74C] text-[#111111]' : 'bg-[#F7F4EC] text-[#4B4B4B]'}`}>
-            {step > 1 ? <Check className="w-4 h-4 text-[#111111]" /> : '1'}
+        {/* Progress Bar Dots & Top Right Back Navigation */}
+        <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2">
+            <div className={`w-7 h-7 rounded-full border-2 border-[#111111] flex items-center justify-center text-xs font-black transition-all ${step === 1 ? 'bg-[#4A4FE0] text-white shadow-[2px_2px_0px_#111111]' : step > 1 ? 'bg-[#F6D74C] text-[#111111]' : 'bg-[#F7F4EC] text-[#4B4B4B]'}`}>
+              {step > 1 ? <Check className="w-3.5 h-3.5 text-[#111111]" /> : '1'}
+            </div>
+            <div className="w-4 h-0.5 bg-[#111111]/20"></div>
+            <div className={`w-7 h-7 rounded-full border-2 border-[#111111] flex items-center justify-center text-xs font-black transition-all ${step === 2 ? 'bg-[#4A4FE0] text-white shadow-[2px_2px_0px_#111111]' : step > 2 ? 'bg-[#F6D74C] text-[#111111]' : 'bg-[#F7F4EC] text-[#4B4B4B]'}`}>
+              {step > 2 ? <Check className="w-3.5 h-3.5 text-[#111111]" /> : '2'}
+            </div>
+            <div className="w-4 h-0.5 bg-[#111111]/20"></div>
+            <div className={`w-7 h-7 rounded-full border-2 border-[#111111] flex items-center justify-center text-xs font-black transition-all ${step === 3 ? 'bg-[#4A4FE0] text-white shadow-[2px_2px_0px_#111111]' : 'bg-[#F7F4EC] text-[#4B4B4B]'}`}>
+              3
+            </div>
           </div>
-          <div className="w-6 h-0.5 bg-[#111111]/20"></div>
-          <div className={`w-8 h-8 rounded-full border-2 border-[#111111] flex items-center justify-center text-xs font-black transition-all ${step === 2 ? 'bg-[#EC4899] text-white shadow-[2px_2px_0px_#111111]' : step > 2 ? 'bg-[#F6D74C] text-[#111111]' : 'bg-[#F7F4EC] text-[#4B4B4B]'}`}>
-            {step > 2 ? <Check className="w-4 h-4 text-[#111111]" /> : '2'}
-          </div>
-          <div className="w-6 h-0.5 bg-[#111111]/20"></div>
-          <div className={`w-8 h-8 rounded-full border-2 border-[#111111] flex items-center justify-center text-xs font-black transition-all ${step === 3 ? 'bg-[#EC4899] text-white shadow-[2px_2px_0px_#111111]' : 'bg-[#F7F4EC] text-[#4B4B4B]'}`}>
-            3
-          </div>
+
+          {step === 1 && (
+            <Link
+              href="/"
+              className="px-3 py-1.5 rounded-xl bg-white hover:bg-[#F7F4EC] text-[#111111] font-extrabold text-xs border-2 border-[#111111] shadow-[2px_2px_0px_#111111] inline-flex items-center gap-1"
+            >
+              <ArrowLeft className="w-3.5 h-3.5 text-[#4A4FE0]" />
+              <span>Back</span>
+            </Link>
+          )}
+          {step === 2 && (
+            <button
+              type="button"
+              onClick={() => setStep(1)}
+              className="px-3 py-1.5 rounded-xl bg-white hover:bg-[#F7F4EC] text-[#111111] font-extrabold text-xs border-2 border-[#111111] shadow-[2px_2px_0px_#111111] inline-flex items-center gap-1"
+            >
+              <ArrowLeft className="w-3.5 h-3.5 text-[#4A4FE0]" />
+              <span>Back</span>
+            </button>
+          )}
+          {step === 3 && (
+            <button
+              type="button"
+              onClick={() => setStep(2)}
+              className="px-3 py-1.5 rounded-xl bg-white hover:bg-[#F7F4EC] text-[#111111] font-extrabold text-xs border-2 border-[#111111] shadow-[2px_2px_0px_#111111] inline-flex items-center gap-1"
+            >
+              <ArrowLeft className="w-3.5 h-3.5 text-[#4A4FE0]" />
+              <span>Back</span>
+            </button>
+          )}
         </div>
       </header>
 
