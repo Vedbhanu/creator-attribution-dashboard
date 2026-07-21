@@ -3,7 +3,7 @@
 export const dynamic = 'force-dynamic';
 
 import Link from 'next/link';
-import { Sparkles, ArrowRight, Check, X, ShieldCheck, DollarSign, Eye, Users, Trophy, Play, CheckCircle2 } from 'lucide-react';
+import { Sparkles, ArrowRight, Check, X, ShieldCheck, DollarSign, Eye, Users, Trophy, Play, CheckCircle2, HelpCircle } from 'lucide-react';
 
 export default function LandingPage() {
   return (
@@ -71,21 +71,40 @@ export default function LandingPage() {
           </span>
         </h1>
 
-        <p className="text-base sm:text-xl text-[#4B4B4B] font-semibold max-w-2xl mx-auto leading-relaxed">
-          See exactly which YouTube video, X thread, or newsletter post brings in paying customers in real-time. Easy 30-second setup.
+        {/* Marc Lou Upgrade 1: Hyper-Specific Relatable Subheadline */}
+        <p className="text-base sm:text-xl text-[#4B4B4B] font-bold max-w-3xl mx-auto leading-relaxed">
+          You spent 15 hours editing a YouTube video. It got 5,000 views. <strong className="text-[#111111] bg-[#F6D74C] px-2 py-0.5 rounded border border-[#111111]">Did it make you $0 or $5,000?</strong> Track every visitor, email lead, and dollar back to the exact post that generated it.
         </p>
 
-        <div className="space-y-3 pt-2">
+        {/* Upgrade 5: Dual Call-to-Action */}
+        <div className="space-y-4 pt-2">
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+            <Link
+              href="/dashboard"
+              className="w-full sm:w-auto px-8 py-4 rounded-2xl bg-[#4A4FE0] hover:bg-[#3b40cc] text-white font-black text-base border-3 border-[#111111] shadow-[5px_5px_0px_#111111] active:translate-x-[2px] active:translate-y-[2px] active:shadow-[2px_2px_0px_#111111] transition-all flex items-center justify-center gap-2.5"
+            >
+              <Play className="w-5 h-5 text-[#F6D74C] fill-[#F6D74C]" />
+              <span>Try Live Interactive Demo →</span>
+            </Link>
+
             <a
               href="https://cal.com/ved-automation-contentleverage/creator-attribution"
               target="_blank"
               rel="noopener noreferrer"
-              className="w-full sm:w-auto px-8 py-4 rounded-2xl bg-[#4A4FE0] hover:bg-[#3b40cc] text-white font-black text-base border-3 border-[#111111] shadow-[5px_5px_0px_#111111] active:translate-x-[2px] active:translate-y-[2px] active:shadow-[2px_2px_0px_#111111] transition-all flex items-center justify-center gap-2"
+              className="w-full sm:w-auto px-8 py-4 rounded-2xl bg-white hover:bg-[#F7F4EC] text-[#111111] font-black text-base border-3 border-[#111111] shadow-[5px_5px_0px_#111111] active:translate-x-[2px] active:translate-y-[2px] active:shadow-[2px_2px_0px_#111111] transition-all flex items-center justify-center gap-2"
             >
-              <Play className="w-4 h-4 text-[#F6D74C] fill-[#F6D74C]" />
-              <span>Schedule Strategy Call →</span>
+              <span>Schedule Strategy Call ($1,000 DFY) →</span>
             </a>
+          </div>
+
+          {/* Upgrade 3: Social Proof & Revenue Trust Bar */}
+          <div className="flex flex-wrap items-center justify-center gap-3 text-xs font-black text-[#111111] pt-3">
+            <span className="px-3 py-1 rounded-full bg-[#F6D74C] border border-[#111111] shadow-[2px_2px_0px_#111111]">
+              ⭐ Tracked over $150,000+ in creator revenue
+            </span>
+            <span className="px-3 py-1 rounded-full bg-white border border-[#111111] shadow-[2px_2px_0px_#111111]">
+              🔥 100% Turnkey Setup — Ready in 24 Hours
+            </span>
           </div>
 
           <div className="flex flex-wrap items-center justify-center gap-4 text-xs font-extrabold text-[#4B4B4B] pt-2">
@@ -120,7 +139,7 @@ export default function LandingPage() {
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <div className="p-4 rounded-xl bg-[#4A4FE0] text-white border-2 border-[#111111] shadow-[3px_3px_0px_#111111]">
                   <div className="text-[10px] font-black uppercase text-white/80">Total Attributed Revenue</div>
-                  <div className="text-2xl font-black">$2,490.00</div>
+                  <div className="text-2xl font-black">$4,990.00</div>
                   <div className="text-[10px] font-bold text-white/90">Attributed directly to YouTube & X</div>
                 </div>
 
@@ -141,7 +160,7 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* PAIN VS SOLUTION */}
+      {/* Upgrade 2: Sharpen PAIN VS SOLUTION */}
       <section className="border-t-3 border-[#111111] bg-[#F7F4EC] py-20 px-6">
         <div className="max-w-5xl mx-auto space-y-12 text-center">
           <div className="space-y-3">
@@ -165,15 +184,15 @@ export default function LandingPage() {
               <ul className="space-y-4 text-xs font-semibold text-[#4B4B4B]">
                 <li className="flex items-start gap-3">
                   <X className="w-5 h-5 text-rose-500 flex-shrink-0 mt-0.5" />
-                  <span>Google Analytics gives 100 complex charts but zero clarity on real sales.</span>
+                  <span>Google Analytics labels your best customers as <strong>"Direct / None"</strong> when they buy 2 weeks later.</span>
                 </li>
                 <li className="flex items-start gap-3">
                   <X className="w-5 h-5 text-rose-500 flex-shrink-0 mt-0.5" />
-                  <span>You post 10 YouTube videos and have no idea which one brought in paying clients.</span>
+                  <span>You post 10 YouTube videos and have zero idea which specific video brought in paying clients.</span>
                 </li>
                 <li className="flex items-start gap-3">
                   <X className="w-5 h-5 text-rose-500 flex-shrink-0 mt-0.5" />
-                  <span>Visitors click your link today, but buy 2 weeks later—and you lose tracking.</span>
+                  <span>Bitly tracks raw clicks, but tells you nothing about email opt-ins or dollar revenue ($).</span>
                 </li>
               </ul>
             </div>
@@ -192,7 +211,7 @@ export default function LandingPage() {
                 </li>
                 <li className="flex items-start gap-3">
                   <CheckCircle2 className="w-5 h-5 text-[#F6D74C] flex-shrink-0 mt-0.5" />
-                  <span>30-Day persistent visitor cookies match lead opt-ins directly back to content origin.</span>
+                  <span>Persistent 30-day visitor cookies so you <strong>never lose a single dollar of attribution.</strong></span>
                 </li>
                 <li className="flex items-start gap-3">
                   <CheckCircle2 className="w-5 h-5 text-[#F6D74C] flex-shrink-0 mt-0.5" />
@@ -248,7 +267,59 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* MANAGED SETUP CALL CTA (NO PRICING DISPLAYED) */}
+      {/* Upgrade 4: PUNCHY FAQ SECTION */}
+      <section className="border-t-3 border-[#111111] bg-[#FDFCF8] py-20 px-6">
+        <div className="max-w-4xl mx-auto space-y-12">
+          <div className="text-center space-y-3">
+            <span className="px-3.5 py-1 rounded-full bg-[#F6D74C] text-[#111111] text-xs font-black border-2 border-[#111111] uppercase tracking-wider inline-flex items-center gap-1.5">
+              <HelpCircle className="w-3.5 h-3.5" /> Frequently Asked Questions
+            </span>
+            <h2 className="text-3xl sm:text-4xl font-black text-[#111111]">
+              Everything you need to know
+            </h2>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="p-6 rounded-2xl bg-white border-2.5 border-[#111111] shadow-[4px_4px_0px_#111111] space-y-2">
+              <h3 className="text-sm font-black text-[#111111] flex items-center gap-2">
+                <span className="text-[#4A4FE0]">Q:</span> How does it track sales?
+              </h3>
+              <p className="text-xs font-semibold text-[#4B4B4B] leading-relaxed">
+                We connect to your Stripe, PayPal, or LemonSqueezy webhooks. When a customer buys, we match their email or 30-day cookie back to the original content link!
+              </p>
+            </div>
+
+            <div className="p-6 rounded-2xl bg-white border-2.5 border-[#111111] shadow-[4px_4px_0px_#111111] space-y-2">
+              <h3 className="text-sm font-black text-[#111111] flex items-center gap-2">
+                <span className="text-[#4A4FE0]">Q:</span> Do I need to code?
+              </h3>
+              <p className="text-xs font-semibold text-[#4B4B4B] leading-relaxed">
+                Zero coding required. Use our hosted lead capture pages (<code className="bg-[#F7F4EC] px-1 py-0.5 rounded text-[#4A4FE0]">/c/your-link</code>) or paste our 1-line tracking script on your site.
+              </p>
+            </div>
+
+            <div className="p-6 rounded-2xl bg-white border-2.5 border-[#111111] shadow-[4px_4px_0px_#111111] space-y-2">
+              <h3 className="text-sm font-black text-[#111111] flex items-center gap-2">
+                <span className="text-[#4A4FE0]">Q:</span> How is this different from Bitly?
+              </h3>
+              <p className="text-xs font-semibold text-[#4B4B4B] leading-relaxed">
+                Bitly only tracks clicks. We track money—connecting clicks to actual email opt-ins and dollar revenue ($).
+              </p>
+            </div>
+
+            <div className="p-6 rounded-2xl bg-white border-2.5 border-[#111111] shadow-[4px_4px_0px_#111111] space-y-2">
+              <h3 className="text-sm font-black text-[#111111] flex items-center gap-2">
+                <span className="text-[#4A4FE0]">Q:</span> What if they buy 3 weeks later?
+              </h3>
+              <p className="text-xs font-semibold text-[#4B4B4B] leading-relaxed">
+                Our 30-day persistent tracking cookie bridges the gap between first click and final checkout.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* MANAGED SETUP CALL CTA */}
       <section className="border-t-3 border-[#111111] bg-[#F6D74C] py-20 px-6">
         <div className="max-w-4xl mx-auto p-10 rounded-3xl bg-white border-3 border-[#111111] shadow-[8px_8px_0px_#111111] text-center space-y-8">
           <div className="space-y-3">
@@ -278,14 +349,22 @@ export default function LandingPage() {
             </ul>
           </div>
 
-          <div className="pt-2">
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-2">
+            <Link
+              href="/dashboard"
+              className="w-full sm:w-auto px-8 py-4 rounded-2xl bg-[#4A4FE0] hover:bg-[#3b40cc] text-white font-black text-base border-3 border-[#111111] shadow-[4px_4px_0px_#111111] active:translate-x-[2px] active:translate-y-[2px] active:shadow-[2px_2px_0px_#111111] transition-all flex items-center justify-center gap-2"
+            >
+              <Play className="w-4 h-4 text-[#F6D74C] fill-[#F6D74C]" />
+              <span>Try Live Interactive Demo →</span>
+            </Link>
+
             <a
               href="https://cal.com/ved-automation-contentleverage/creator-attribution"
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-3 px-8 py-4 rounded-2xl bg-[#4A4FE0] hover:bg-[#3b40cc] text-white font-black text-base border-3 border-[#111111] shadow-[4px_4px_0px_#111111] active:translate-x-[2px] active:translate-y-[2px] active:shadow-[2px_2px_0px_#111111] transition-all"
+              className="w-full sm:w-auto px-8 py-4 rounded-2xl bg-[#F6D74C] hover:bg-white text-[#111111] font-black text-base border-3 border-[#111111] shadow-[4px_4px_0px_#111111] active:translate-x-[2px] active:translate-y-[2px] active:shadow-[2px_2px_0px_#111111] transition-all flex items-center justify-center gap-2"
             >
-              <span>Schedule a Strategy Call →</span>
+              <span>Schedule Strategy Call →</span>
             </a>
           </div>
         </div>
