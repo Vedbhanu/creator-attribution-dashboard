@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { ShieldCheck, Users, DollarSign, Video, Zap, ArrowRight, Lock, AlertTriangle, Eye, CheckCircle2 } from 'lucide-react';
 import { useToast } from '@/components/ui/toast';
+import { isSupabaseConfigured, supabase } from '@/lib/supabase';
 
 interface ClientWorkspace {
   id: string;
@@ -60,11 +61,24 @@ export default function AgencyAdminPage() {
   ]);
 
   useEffect(() => {
-    // Check local session or admin email
-    const storedRole = typeof window !== 'undefined' ? localStorage.getItem('user_role') : null;
-    const storedEmail = typeof window !== 'undefined' ? localStorage.getItem('user_email') : null;
-    const isVedAdmin = storedRole === 'admin' || storedEmail === 'abdbhanu1212@gmail.com';
-    setIsAdminAuthorized(isVedAdmin);
+    async function verifyAdminAuthorization() {
+      let email = typeof window !== 'undefined' ? localStorage.getItem('user_email') : null;
+
+      if (isSupabaseConfigured() && supabase) {
+        const { data } = await supabase.auth.getUser();
+        if (data?.user?.email) {
+          email = data.user.email;
+        }
+      }
+
+      if (email === 'abdbhanu1212@gmail.com') {
+        setIsAdminAuthorized(true);
+      } else {
+        setIsAdminAuthorized(false);
+      }
+    }
+
+    verifyAdminAuthorization();
   }, []);
 
   const handleSwitchWorkspace = (client: ClientWorkspace) => {

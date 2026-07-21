@@ -28,7 +28,7 @@ export async function GET(
     let visitorCookieId = cookieStore.get('creator_visitor_id')?.value;
 
     if (!visitorCookieId) {
-      visitorCookieId = 'ck_' + Math.random().toString(36).substring(2, 11) + '_' + Date.now();
+      visitorCookieId = 'ck_' + crypto.randomUUID();
     }
 
     // Record visitor click in database

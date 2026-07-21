@@ -282,14 +282,28 @@ class StorageManager {
     return newVisitor;
   }
 
-  async getVisitors(): Promise<Visitor[]> {
-    if (isSupabaseConfigured() && supabase) {
-      const { data, error } = await supabase.from('visitors').select('*').order('created_at', { ascending: false });
+  async getVisitors(userId?: string): Promise<Visitor[]> {
+    if (!userId || userId === 'demo' || userId === 'default_user') {
+      return [...this.visitorsList].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+    }
+
+    const userContent = await this.getContent(userId);
+    const contentIds = new Set(userContent.map(c => c.id));
+
+    if (isSupabaseConfigured() && supabase && contentIds.size > 0) {
+      const { data, error } = await supabase
+        .from('visitors')
+        .select('*')
+        .in('content_id', Array.from(contentIds))
+        .order('created_at', { ascending: false });
+
       if (!error && data) {
         return data as Visitor[];
       }
     }
-    return [...this.visitorsList].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+    return this.visitorsList
+      .filter(v => contentIds.has(v.content_id))
+      .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
   }
 
   async getVisitorByCookie(cookieId: string): Promise<Visitor | null> {
@@ -330,14 +344,28 @@ class StorageManager {
     return newLead;
   }
 
-  async getLeads(): Promise<Lead[]> {
-    if (isSupabaseConfigured() && supabase) {
-      const { data, error } = await supabase.from('leads').select('*').order('created_at', { ascending: false });
+  async getLeads(userId?: string): Promise<Lead[]> {
+    if (!userId || userId === 'demo' || userId === 'default_user') {
+      return [...this.leadsList].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+    }
+
+    const userContent = await this.getContent(userId);
+    const contentIds = new Set(userContent.map(c => c.id));
+
+    if (isSupabaseConfigured() && supabase && contentIds.size > 0) {
+      const { data, error } = await supabase
+        .from('leads')
+        .select('*')
+        .in('content_id', Array.from(contentIds))
+        .order('created_at', { ascending: false });
+
       if (!error && data) {
         return data as Lead[];
       }
     }
-    return [...this.leadsList].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+    return this.leadsList
+      .filter(l => contentIds.has(l.content_id))
+      .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
   }
 
   // SALES & REVENUE ATTRIBUTION
@@ -368,14 +396,28 @@ class StorageManager {
     return newSale;
   }
 
-  async getSales(): Promise<Sale[]> {
-    if (isSupabaseConfigured() && supabase) {
-      const { data, error } = await supabase.from('sales').select('*').order('created_at', { ascending: false });
+  async getSales(userId?: string): Promise<Sale[]> {
+    if (!userId || userId === 'demo' || userId === 'default_user') {
+      return [...this.salesList].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+    }
+
+    const userLeads = await this.getLeads(userId);
+    const leadIds = new Set(userLeads.map(l => l.id));
+
+    if (isSupabaseConfigured() && supabase && leadIds.size > 0) {
+      const { data, error } = await supabase
+        .from('sales')
+        .select('*')
+        .in('lead_id', Array.from(leadIds))
+        .order('created_at', { ascending: false });
+
       if (!error && data) {
         return data as Sale[];
       }
     }
-    return [...this.salesList].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+    return this.salesList
+      .filter(s => leadIds.has(s.lead_id))
+      .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
   }
 
   // ATTRIBUTION METRICS COMPUTATION
