@@ -19,44 +19,45 @@ export default function ForgotPasswordPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [accountNotFound, setAccountNotFound] = useState(false);
-  const [smtpNotice, setSmtpNotice] = useState<string | null>(null);
 
   const handleSendOtp = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
     setAccountNotFound(false);
-    setSmtpNotice(null);
     setLoading(true);
 
     try {
       if (isSupabaseConfigured() && supabase) {
-        // Send reset email via Supabase Auth
-        const { error: resetErr } = await supabase.auth.resetPasswordForEmail(email, {
-          redirectTo: `${window.location.origin}/forgot-password?step=2`,
+        // 1. First, check if the account exists in workspace_settings
+        const { data: settingsData, error: queryErr } = await supabase
+          .from('workspace_settings')
+          .select('user_id')
+          .eq('user_id', email);
+
+        if (queryErr || !settingsData || settingsData.length === 0) {
+          setAccountNotFound(true);
+          setError('No creator account is registered with this email. Please create an account first!');
+          setLoading(false);
+          return;
+        }
+
+        // 2. Send actual 6-digit OTP code to the email
+        const { error: otpErr } = await supabase.auth.signInWithOtp({
+          email,
+          options: {
+            shouldCreateUser: false,
+          }
         });
 
-        if (resetErr) {
-          if (
-            resetErr.message.toLowerCase().includes('not found') ||
-            resetErr.message.toLowerCase().includes('user') ||
-            resetErr.status === 404
-          ) {
-            setAccountNotFound(true);
-            setError('No creator account found with this email. Please create an account first!');
-            setLoading(false);
-            return;
-          } else if (
-            resetErr.message.toLowerCase().includes('rate limit') ||
-            resetErr.message.toLowerCase().includes('smtp') ||
-            resetErr.message.toLowerCase().includes('email')
-          ) {
-            setSmtpNotice('Default Supabase SMTP limit reached. You can reset your password directly below.');
-          }
+        if (otpErr) {
+          setError('Failed to send OTP code: ' + otpErr.message);
+          setLoading(false);
+          return;
         }
       }
 
       setStep(2);
-      showToast('📧 Reset request processed for ' + email);
+      showToast('📧 6-digit OTP code sent to your email!');
     } catch (err: any) {
       setStep(2);
     } finally {
@@ -69,6 +70,12 @@ export default function ForgotPasswordPage() {
     setError(null);
     setLoading(true);
 
+    if (!enteredOtp || enteredOtp.length < 6) {
+      setError('Please enter the 6-digit verification code sent to your email.');
+      setLoading(false);
+      return;
+    }
+
     if (newPassword.length < 6) {
       setError('Please enter a new password with at least 6 characters.');
       setLoading(false);
@@ -77,27 +84,38 @@ export default function ForgotPasswordPage() {
 
     try {
       if (isSupabaseConfigured() && supabase) {
-        // 1. Try OTP verification if user entered a 6-digit code
-        if (enteredOtp.length >= 6) {
-          const { error: verifyErr } = await supabase.auth.verifyOtp({
+        // 1. Verify actual 6-digit OTP code sent to email
+        const { error: verifyErr } = await supabase.auth.verifyOtp({
+          email,
+          token: enteredOtp,
+          type: 'email',
+        });
+
+        if (verifyErr) {
+          // Fallback verify type 'magiclink' just in case of provider configuration differences
+          const { error: verifyFallbackErr } = await supabase.auth.verifyOtp({
             email,
             token: enteredOtp,
-            type: 'recovery',
+            type: 'magiclink',
           });
 
-          if (verifyErr) {
-            console.warn('OTP verify note:', verifyErr.message);
+          if (verifyFallbackErr) {
+            setError('Invalid or expired OTP code. Please verify the code in your email inbox.');
+            setLoading(false);
+            return;
           }
         }
 
-        // 2. Update password in Supabase Auth
+        // 2. Once verified, update the password
         const { error: updateErr } = await supabase.auth.updateUser({ password: newPassword });
         if (updateErr) {
-          console.warn('Update user note:', updateErr.message);
+          setError('Failed to update password: ' + updateErr.message);
+          setLoading(false);
+          return;
         }
       }
 
-      // Save updated user session locally
+      // Save updated user session details locally
       if (typeof window !== 'undefined') {
         localStorage.setItem('user_email', email);
         localStorage.setItem('user_name', email.split('@')[0]);
@@ -114,15 +132,7 @@ export default function ForgotPasswordPage() {
         router.refresh();
       }, 1000);
     } catch (err: any) {
-      // Fallback local update
-      if (typeof window !== 'undefined') {
-        localStorage.setItem('user_email', email);
-        localStorage.setItem('user_name', email.split('@')[0]);
-      }
-      showToast('🎉 Password updated! Redirecting...');
-      setTimeout(() => {
-        router.push('/dashboard');
-      }, 1000);
+      setError('Failed to update password. Please check your OTP code.');
     } finally {
       setLoading(false);
     }
@@ -147,12 +157,12 @@ export default function ForgotPasswordPage() {
             <KeyRound className="w-6 h-6 text-[#F6D74C]" />
           </div>
           <h1 className="text-2xl font-black text-[#111111] tracking-tight">
-            {step === 1 ? 'Reset Your Password' : 'Set New Password'}
+            {step === 1 ? 'Reset Your Password' : 'Verify Email OTP & Reset'}
           </h1>
           <p className="text-xs text-[#4B4B4B] font-semibold">
             {step === 1
-              ? 'Enter your registered email address to reset your account password.'
-              : `Enter your new password below for ${email}.`}
+              ? 'Enter your registered email address to receive a 6-digit verification code.'
+              : `Enter the 6-digit OTP code sent to ${email} along with your new password.`}
           </p>
         </div>
 
@@ -208,7 +218,7 @@ export default function ForgotPasswordPage() {
               disabled={loading}
               className="w-full py-3.5 rounded-xl bg-[#4A4FE0] hover:bg-[#3b40cc] text-white font-black text-xs border-2 border-[#111111] shadow-[4px_4px_0px_#111111] active:translate-x-[2px] active:translate-y-[2px] active:shadow-[2px_2px_0px_#111111] transition-all disabled:opacity-50 flex items-center justify-center gap-2"
             >
-              <span>{loading ? 'Verifying Account...' : 'Continue to Password Reset →'}</span>
+              <span>{loading ? 'Sending OTP Code...' : 'Send Password Reset OTP →'}</span>
             </button>
           </form>
         )}
@@ -217,23 +227,24 @@ export default function ForgotPasswordPage() {
           <form onSubmit={handleVerifyOtpAndReset} className="space-y-5">
             {/* Status Information Box */}
             <div className="p-4 rounded-2xl bg-[#F7F4EC] border-2 border-[#111111] shadow-[3px_3px_0px_#111111] space-y-2 text-center">
-              <div className="w-8 h-8 rounded-full bg-[#4A4FE0] text-white flex items-center justify-center mx-auto border border-[#111111]">
-                <CheckCircle2 className="w-4 h-4 text-[#F6D74C]" />
+              <div className="w-8 h-8 rounded-full bg-emerald-500 text-white flex items-center justify-center mx-auto border border-[#111111]">
+                <CheckCircle2 className="w-4 h-4" />
               </div>
               <p className="text-xs font-bold text-[#111111]">
-                Reset requested for <span className="underline font-black">{email}</span>.
+                OTP code sent to <span className="underline font-black">{email}</span>.
               </p>
               <p className="text-[11px] font-semibold text-[#4B4B4B]">
-                Enter your new password below to update your account instantly.
+                Check your inbox/spam folder and enter the 6-digit code below.
               </p>
             </div>
 
             <div className="space-y-1.5">
-              <label className="text-xs font-extrabold text-[#111111]">6-Digit Email OTP Code <span className="text-[10px] text-[#4B4B4B] font-normal">(Optional)</span></label>
+              <label className="text-xs font-extrabold text-[#111111]">Enter 6-Digit Email OTP Code</label>
               <div className="relative">
                 <ShieldCheck className="w-4 h-4 absolute left-3.5 top-3.5 text-[#111111]" />
                 <input
                   type="text"
+                  required
                   maxLength={6}
                   placeholder="e.g. 123456"
                   value={enteredOtp}
@@ -264,7 +275,7 @@ export default function ForgotPasswordPage() {
               disabled={loading}
               className="w-full py-3.5 rounded-xl bg-[#4A4FE0] hover:bg-[#3b40cc] text-white font-black text-xs border-2 border-[#111111] shadow-[4px_4px_0px_#111111] active:translate-x-[2px] active:translate-y-[2px] active:shadow-[2px_2px_0px_#111111] transition-all disabled:opacity-50 flex items-center justify-center gap-2"
             >
-              <span>{loading ? 'Updating Password...' : 'Save New Password & Log In →'}</span>
+              <span>{loading ? 'Verifying & Saving...' : 'Verify OTP & Save New Password →'}</span>
             </button>
           </form>
         )}
