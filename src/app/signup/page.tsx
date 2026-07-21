@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Sparkles, Mail, Lock, User, ArrowRight, ArrowLeft } from 'lucide-react';
@@ -13,6 +13,16 @@ export default function SignupPage() {
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const urlParams = new URLSearchParams(window.location.search);
+      const prefillEmail = urlParams.get('email');
+      if (prefillEmail) {
+        setEmail(prefillEmail);
+      }
+    }
+  }, []);
 
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();

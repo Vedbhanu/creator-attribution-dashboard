@@ -3,8 +3,8 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { KeyRound, Mail, ArrowRight, CheckCircle2, AlertCircle, ShieldCheck, Lock, ArrowLeft } from 'lucide-react';
-import { supabase } from '@/lib/supabase';
+import { KeyRound, Mail, ArrowRight, CheckCircle2, AlertCircle, ShieldCheck, Lock, ArrowLeft, UserPlus } from 'lucide-react';
+import { isSupabaseConfigured, supabase } from '@/lib/supabase';
 import { useToast } from '@/components/ui/toast';
 
 export default function ForgotPasswordPage() {
@@ -18,26 +18,40 @@ export default function ForgotPasswordPage() {
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [accountNotFound, setAccountNotFound] = useState(false);
   const [sentNotice, setSentNotice] = useState(false);
 
   const handleSendOtp = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
+    setAccountNotFound(false);
     setLoading(true);
 
     try {
-      if (supabase) {
+      if (isSupabaseConfigured() && supabase) {
+        // Send actual OTP reset email via Supabase Auth
         const { error: resetErr } = await supabase.auth.resetPasswordForEmail(email, {
           redirectTo: `${window.location.origin}/forgot-password?step=2`,
         });
+
         if (resetErr) {
-          console.warn('Supabase reset note:', resetErr.message);
+          if (
+            resetErr.message.toLowerCase().includes('not found') ||
+            resetErr.message.toLowerCase().includes('user') ||
+            resetErr.status === 404 ||
+            resetErr.status === 400
+          ) {
+            setAccountNotFound(true);
+            setError('No creator account found with this email. Please create an account first!');
+            setLoading(false);
+            return;
+          }
         }
       }
 
       setSentNotice(true);
       setStep(2);
-      showToast('📧 Reset instructions & OTP sent to your email!');
+      showToast('📧 6-digit OTP code sent to your email!');
     } catch (err: any) {
       setSentNotice(true);
       setStep(2);
@@ -58,14 +72,30 @@ export default function ForgotPasswordPage() {
     }
 
     try {
-      if (supabase) {
+      if (isSupabaseConfigured() && supabase) {
+        // Verify actual 6-digit OTP code sent to email
+        const { error: verifyErr } = await supabase.auth.verifyOtp({
+          email,
+          token: enteredOtp,
+          type: 'recovery',
+        });
+
+        if (verifyErr) {
+          setError('Invalid or expired OTP code. Please check your email inbox and try again.');
+          setLoading(false);
+          return;
+        }
+
+        // Update password in Supabase Auth
         const { error: updateErr } = await supabase.auth.updateUser({ password: newPassword });
         if (updateErr) {
-          console.warn('Supabase update password note:', updateErr.message);
+          setError('Failed to update password: ' + updateErr.message);
+          setLoading(false);
+          return;
         }
       }
 
-      // Save updated session details
+      // Save updated session details locally
       if (typeof window !== 'undefined') {
         localStorage.setItem('user_email', email);
         localStorage.setItem('user_name', email.split('@')[0]);
@@ -94,6 +124,7 @@ export default function ForgotPasswordPage() {
           <span>← Back to Sales Page</span>
         </Link>
       </div>
+
       <div className="w-full max-w-md p-8 rounded-3xl bg-white border-3 border-[#111111] shadow-[8px_8px_0px_#111111] space-y-6">
         <div className="text-center space-y-3">
           <div className="w-12 h-12 rounded-2xl bg-[#4A4FE0] text-white border-2 border-[#111111] flex items-center justify-center mx-auto shadow-[3px_3px_0px_#111111]">
@@ -104,12 +135,32 @@ export default function ForgotPasswordPage() {
           </h1>
           <p className="text-xs text-[#4B4B4B] font-semibold">
             {step === 1
-              ? 'Enter your registered email address to receive password reset instructions via email.'
+              ? 'Enter your registered email address to receive a 6-digit OTP code via email.'
               : `Check your inbox (${email}) for your 6-digit OTP verification code.`}
           </p>
         </div>
 
-        {error && (
+        {/* Account Not Found Banner */}
+        {accountNotFound && (
+          <div className="p-4 rounded-2xl bg-amber-100 border-2 border-[#111111] text-[#111111] space-y-3 shadow-[3px_3px_0px_#111111]">
+            <div className="flex items-center gap-2 font-black text-xs text-amber-900">
+              <AlertCircle className="w-4 h-4 text-amber-700 flex-shrink-0" />
+              <span>No Account Found!</span>
+            </div>
+            <p className="text-xs font-semibold text-[#111111]">
+              No creator account exists for <strong>{email}</strong>. Please create an account first to get started.
+            </p>
+            <Link
+              href={`/signup?email=${encodeURIComponent(email)}`}
+              className="w-full py-2.5 px-4 rounded-xl bg-[#4A4FE0] hover:bg-[#3b40cc] text-white font-black text-xs border-2 border-[#111111] shadow-[2px_2px_0px_#111111] flex items-center justify-center gap-1.5 transition-all"
+            >
+              <UserPlus className="w-4 h-4 text-[#F6D74C]" />
+              <span>Create Account Now →</span>
+            </Link>
+          </div>
+        )}
+
+        {error && !accountNotFound && (
           <div className="p-3.5 rounded-xl bg-rose-100 border-2 border-[#111111] text-[#111111] text-xs font-bold flex items-center gap-2 shadow-[2px_2px_0px_#111111]">
             <AlertCircle className="w-4 h-4 text-rose-600 flex-shrink-0" />
             <span>{error}</span>
@@ -127,7 +178,10 @@ export default function ForgotPasswordPage() {
                   required
                   placeholder="creator@domain.com"
                   value={email}
-                  onChange={(e) => setEmail(e.target.value)}
+                  onChange={(e) => {
+                    setEmail(e.target.value);
+                    setAccountNotFound(false);
+                  }}
                   className="w-full pl-10 pr-4 py-3 rounded-xl bg-[#F7F4EC] border-2 border-[#111111] text-sm text-[#111111] font-bold focus:outline-none focus:bg-white"
                 />
               </div>
@@ -138,7 +192,7 @@ export default function ForgotPasswordPage() {
               disabled={loading}
               className="w-full py-3.5 rounded-xl bg-[#4A4FE0] hover:bg-[#3b40cc] text-white font-black text-xs border-2 border-[#111111] shadow-[4px_4px_0px_#111111] active:translate-x-[2px] active:translate-y-[2px] active:shadow-[2px_2px_0px_#111111] transition-all disabled:opacity-50 flex items-center justify-center gap-2"
             >
-              <span>{loading ? 'Sending Reset Instructions...' : 'Send Password Reset Email →'}</span>
+              <span>{loading ? 'Checking Account & Sending OTP...' : 'Send Password Reset Email →'}</span>
             </button>
           </form>
         )}
@@ -151,7 +205,7 @@ export default function ForgotPasswordPage() {
                 <CheckCircle2 className="w-4 h-4" />
               </div>
               <p className="text-xs font-bold text-[#111111]">
-                We sent a 6-digit OTP reset code to <span className="underline">{email}</span>. Please check your inbox or spam folder.
+                We sent an actual 6-digit OTP reset code to <span className="underline">{email}</span>. Please check your email inbox or spam folder.
               </p>
             </div>
 
@@ -192,7 +246,7 @@ export default function ForgotPasswordPage() {
               disabled={loading}
               className="w-full py-3.5 rounded-xl bg-[#4A4FE0] hover:bg-[#3b40cc] text-white font-black text-xs border-2 border-[#111111] shadow-[4px_4px_0px_#111111] active:translate-x-[2px] active:translate-y-[2px] active:shadow-[2px_2px_0px_#111111] transition-all disabled:opacity-50 flex items-center justify-center gap-2"
             >
-              <span>{loading ? 'Updating Password...' : 'Verify OTP & Reset Password →'}</span>
+              <span>{loading ? 'Verifying OTP & Updating...' : 'Verify OTP & Reset Password →'}</span>
             </button>
           </form>
         )}
