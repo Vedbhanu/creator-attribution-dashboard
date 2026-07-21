@@ -7,6 +7,7 @@ import { FunnelChart } from '@/components/analytics/funnel-chart';
 import { ContentPerformanceTable } from '@/components/analytics/content-performance-table';
 import { AnalyticsSummary, ContentAttributionMetrics } from '@/types/database';
 import { Sparkles, Plus, RefreshCw, BarChart2 } from 'lucide-react';
+import { isSupabaseConfigured, supabase } from '@/lib/supabase';
 
 export default function AnalyticsDashboardPage() {
   const [summary, setSummary] = useState<AnalyticsSummary | null>(null);
@@ -19,8 +20,20 @@ export default function AnalyticsDashboardPage() {
 
   const fetchAnalytics = async () => {
     try {
-      const userEmail = typeof window !== 'undefined' ? localStorage.getItem('user_email') : 'demo';
-      const res = await fetch(`/api/analytics?userId=${encodeURIComponent(userEmail || 'demo')}`);
+      let userEmail = typeof window !== 'undefined' ? localStorage.getItem('user_email') : null;
+
+      if (!userEmail && isSupabaseConfigured() && supabase) {
+        const { data } = await supabase.auth.getUser();
+        if (data?.user?.email) {
+          userEmail = data.user.email;
+          if (typeof window !== 'undefined') {
+            localStorage.setItem('user_email', userEmail);
+          }
+        }
+      }
+
+      const activeUserId = userEmail || 'demo';
+      const res = await fetch(`/api/analytics?userId=${encodeURIComponent(activeUserId)}`);
       const json = await res.json();
       if (json.success) {
         setSummary(json.summary);

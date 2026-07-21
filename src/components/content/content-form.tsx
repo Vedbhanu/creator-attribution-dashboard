@@ -82,10 +82,11 @@ export function ContentForm() {
     setIsSubmitting(true);
 
     try {
+      const userEmail = typeof window !== 'undefined' ? localStorage.getItem('user_email') : null;
       const response = await fetch('/api/content', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ title, platform, url, tracking_slug: trackingSlug }),
+        body: JSON.stringify({ title, platform, url, tracking_slug: trackingSlug, userId: userEmail }),
       });
 
       const data = await response.json();

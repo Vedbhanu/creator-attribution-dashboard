@@ -63,6 +63,7 @@ export function OverviewMetrics({ summary }: { summary: AnalyticsSummary }) {
       const baseSlug = generateShortSlug(resolvedTitle);
       const tracking_slug = prefix + baseSlug;
 
+      const userEmail = typeof window !== 'undefined' ? localStorage.getItem('user_email') : null;
       const res = await fetch('/api/content', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -70,7 +71,8 @@ export function OverviewMetrics({ summary }: { summary: AnalyticsSummary }) {
           title: resolvedTitle,
           platform,
           url: quickUrl,
-          tracking_slug
+          tracking_slug,
+          userId: userEmail
         })
       });
 

@@ -6,6 +6,7 @@ import { ContentItem, ContentAttributionMetrics } from '@/types/database';
 import { Search, ExternalLink, Copy, Check, Trash2, Plus, Sparkles, QrCode, FileText, Pencil, Save, X } from 'lucide-react';
 import { getAppDomain } from '@/lib/utils';
 import { useToast } from '@/components/ui/toast';
+import { isSupabaseConfigured, supabase } from '@/lib/supabase';
 
 export function ContentList() {
   const { showToast } = useToast();
@@ -31,8 +32,20 @@ export function ContentList() {
 
   const fetchContent = async () => {
     try {
-      const userEmail = typeof window !== 'undefined' ? localStorage.getItem('user_email') : 'demo';
-      const res = await fetch(`/api/content?userId=${encodeURIComponent(userEmail || 'demo')}`);
+      let userEmail = typeof window !== 'undefined' ? localStorage.getItem('user_email') : null;
+
+      if (!userEmail && isSupabaseConfigured() && supabase) {
+        const { data } = await supabase.auth.getUser();
+        if (data?.user?.email) {
+          userEmail = data.user.email;
+          if (typeof window !== 'undefined') {
+            localStorage.setItem('user_email', userEmail);
+          }
+        }
+      }
+
+      const activeUserId = userEmail || 'demo';
+      const res = await fetch(`/api/content?userId=${encodeURIComponent(activeUserId)}`);
       const json = await res.json();
       if (json.success && json.metrics) {
         setMetrics(json.metrics);

@@ -204,8 +204,9 @@ class StorageManager {
     const newItem: ContentItem = {
       id: 'c-' + Math.random().toString(36).substring(2, 9),
       ...item,
+      user_id: (item as any).user_id || 'demo',
       created_at: new Date().toISOString()
-    };
+    } as any;
     this.contentList.unshift(newItem);
     return newItem;
   }

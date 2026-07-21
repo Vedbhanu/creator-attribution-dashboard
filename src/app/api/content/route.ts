@@ -7,7 +7,7 @@ export async function GET(request: Request) {
     const userId = searchParams.get('userId') || 'demo';
     
     const contentList = await storage.getContent(userId);
-    const metricsList = await storage.getAttributionMetrics();
+    const metricsList = await storage.getAttributionMetrics(userId);
     
     return NextResponse.json({ success: true, data: contentList, metrics: metricsList });
   } catch (error: any) {

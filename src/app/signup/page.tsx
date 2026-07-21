@@ -56,6 +56,11 @@ export default function SignupPage() {
       router.push('/onboarding');
       router.refresh();
     } catch (err: any) {
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('user_email', email);
+        localStorage.setItem('user_name', name || email.split('@')[0]);
+        localStorage.setItem('user_role', 'client');
+      }
       router.push('/onboarding');
     } finally {
       setLoading(false);
