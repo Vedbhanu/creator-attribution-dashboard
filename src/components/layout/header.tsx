@@ -41,15 +41,12 @@ export function Header() {
         setIsAdmin(false);
       }
     } else {
-      // Default Demo Mode
-      fetch('/api/settings')
-        .then((res) => res.json())
-        .then((data) => {
-          if (data.success && data.settings) {
-            setBrandName(data.settings.brand_name || 'Ved Automation Workspace');
-          }
-        })
-        .catch(() => setBrandName('Demo Creator Workspace'));
+      // Default Demo Mode (Isolated from Ved's admin data)
+      setBrandName('Demo Sandbox Workspace');
+      setUserName('Demo Creator');
+      setUserEmail('demo@creator.com');
+      setAccountTag('Sample Sandbox');
+      setIsAdmin(false);
     }
 
     // Close dropdown on outside click
