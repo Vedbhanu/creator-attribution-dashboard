@@ -77,29 +77,14 @@ export default function LandingPage() {
 
         <div className="space-y-3 pt-2">
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-            <Link
-              href="/signup"
-              className="w-full sm:w-auto px-8 py-4 rounded-2xl bg-[#4A4FE0] hover:bg-[#3b40cc] text-white font-black text-base border-3 border-[#111111] shadow-[5px_5px_0px_#111111] active:translate-x-[2px] active:translate-y-[2px] active:shadow-[2px_2px_0px_#111111] transition-all flex items-center justify-center gap-2"
-            >
-              <span>Create Account</span>
-              <ArrowRight className="w-5 h-5" />
-            </Link>
-
-            <Link
-              href="/login"
-              className="w-full sm:w-auto px-7 py-4 rounded-2xl bg-[#F6D74C] hover:bg-white text-[#111111] font-extrabold text-base border-3 border-[#111111] shadow-[4px_4px_0px_#111111] active:translate-x-[2px] active:translate-y-[2px] active:shadow-[2px_2px_0px_#111111] transition-all flex items-center justify-center gap-2"
-            >
-              <span>Sign In to Dashboard</span>
-            </Link>
-
             <a
               href="https://cal.com/ved-automation-contentleverage/creator-attribution"
               target="_blank"
               rel="noopener noreferrer"
-              className="w-full sm:w-auto px-7 py-4 rounded-2xl bg-white hover:bg-[#F7F4EC] text-[#111111] font-extrabold text-base border-3 border-[#111111] shadow-[4px_4px_0px_#111111] active:translate-x-[2px] active:translate-y-[2px] active:shadow-[2px_2px_0px_#111111] transition-all flex items-center justify-center gap-2"
+              className="w-full sm:w-auto px-8 py-4 rounded-2xl bg-[#4A4FE0] hover:bg-[#3b40cc] text-white font-black text-base border-3 border-[#111111] shadow-[5px_5px_0px_#111111] active:translate-x-[2px] active:translate-y-[2px] active:shadow-[2px_2px_0px_#111111] transition-all flex items-center justify-center gap-2"
             >
-              <Play className="w-4 h-4 text-[#4A4FE0] fill-[#4A4FE0]" />
-              Schedule Strategy Call
+              <Play className="w-4 h-4 text-[#F6D74C] fill-[#F6D74C]" />
+              <span>Schedule Strategy Call →</span>
             </a>
           </div>
 
