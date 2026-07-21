@@ -27,18 +27,26 @@ export default function LandingPage() {
           </div>
         </Link>
 
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-3">
           <Link
-            href="/dashboard"
-            className="text-xs font-extrabold text-[#111111] hover:text-[#4A4FE0] transition-colors"
+            href="/login"
+            className="text-xs font-extrabold text-[#111111] hover:text-[#4A4FE0] transition-colors px-2 py-1"
           >
-            Dashboard
+            Sign In
           </Link>
+
           <Link
-            href="/dashboard"
+            href="/signup"
             className="px-5 py-2.5 rounded-xl bg-[#4A4FE0] hover:bg-[#3b40cc] text-white font-extrabold text-xs border-2 border-[#111111] shadow-[3px_3px_0px_#111111] active:translate-x-[2px] active:translate-y-[2px] active:shadow-[1px_1px_0px_#111111] transition-all"
           >
-            Live Interactive Demo →
+            Create Account →
+          </Link>
+
+          <Link
+            href="/dashboard"
+            className="hidden sm:inline-flex px-4 py-2.5 rounded-xl bg-[#F6D74C] hover:bg-white text-[#111111] font-extrabold text-xs border-2 border-[#111111] shadow-[3px_3px_0px_#111111] active:translate-x-[2px] active:translate-y-[2px] active:shadow-[1px_1px_0px_#111111] transition-all"
+          >
+            Live Demo
           </Link>
         </div>
       </header>
@@ -73,8 +81,15 @@ export default function LandingPage() {
               href="/signup"
               className="w-full sm:w-auto px-8 py-4 rounded-2xl bg-[#4A4FE0] hover:bg-[#3b40cc] text-white font-black text-base border-3 border-[#111111] shadow-[5px_5px_0px_#111111] active:translate-x-[2px] active:translate-y-[2px] active:shadow-[2px_2px_0px_#111111] transition-all flex items-center justify-center gap-2"
             >
-              <span>Get Started Now</span>
+              <span>Create Account</span>
               <ArrowRight className="w-5 h-5" />
+            </Link>
+
+            <Link
+              href="/login"
+              className="w-full sm:w-auto px-7 py-4 rounded-2xl bg-[#F6D74C] hover:bg-white text-[#111111] font-extrabold text-base border-3 border-[#111111] shadow-[4px_4px_0px_#111111] active:translate-x-[2px] active:translate-y-[2px] active:shadow-[2px_2px_0px_#111111] transition-all flex items-center justify-center gap-2"
+            >
+              <span>Sign In to Dashboard</span>
             </Link>
 
             <a
@@ -84,7 +99,7 @@ export default function LandingPage() {
               className="w-full sm:w-auto px-7 py-4 rounded-2xl bg-white hover:bg-[#F7F4EC] text-[#111111] font-extrabold text-base border-3 border-[#111111] shadow-[4px_4px_0px_#111111] active:translate-x-[2px] active:translate-y-[2px] active:shadow-[2px_2px_0px_#111111] transition-all flex items-center justify-center gap-2"
             >
               <Play className="w-4 h-4 text-[#4A4FE0] fill-[#4A4FE0]" />
-              Schedule a Strategy Call
+              Schedule Strategy Call
             </a>
           </div>
 
