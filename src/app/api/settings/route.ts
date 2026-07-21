@@ -3,8 +3,23 @@ import { isSupabaseConfigured, supabase } from '@/lib/supabase';
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
-  const userId = searchParams.get('userId') || 'default_user';
+  const userId = searchParams.get('userId');
 
+  // 1. Demo Sandbox Mode (Unauthenticated preview)
+  if (!userId || userId === 'demo' || userId === 'default_user') {
+    return NextResponse.json({
+      success: true,
+      settings: {
+        user_id: 'demo',
+        brand_name: 'Demo Creator Workspace',
+        currency: 'USD',
+        custom_domain: 'attrib.democreator.com',
+        webhook_secret: 'whsec_sample_demo_key'
+      }
+    });
+  }
+
+  // 2. Query Supabase for logged-in user settings
   if (isSupabaseConfigured() && supabase) {
     try {
       const { data, error } = await supabase
@@ -21,15 +36,18 @@ export async function GET(request: Request) {
     }
   }
 
-  // Fallback defaults
+  // 3. Fallback defaults dynamically generated for new logged-in creator
+  const nameFromEmail = userId.split('@')[0];
+  const formattedName = nameFromEmail.charAt(0).toUpperCase() + nameFromEmail.slice(1);
+
   return NextResponse.json({
     success: true,
     settings: {
       user_id: userId,
-      brand_name: 'Ved Automation Workspace',
+      brand_name: `${formattedName}'s Workspace`,
       currency: 'USD',
-      custom_domain: 'attrib.yourdomain.com',
-      webhook_secret: 'whsec_creator_attrib_982374'
+      custom_domain: `attrib.${nameFromEmail.toLowerCase()}.com`,
+      webhook_secret: `whsec_${nameFromEmail.toLowerCase()}_${Math.floor(100000 + Math.random() * 900000)}`
     }
   });
 }
@@ -37,7 +55,11 @@ export async function GET(request: Request) {
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const { userId = 'default_user', brand_name, currency, custom_domain, webhook_secret } = body;
+    const { userId, brand_name, currency, custom_domain, webhook_secret } = body;
+
+    if (!userId || userId === 'demo') {
+      return NextResponse.json({ success: false, error: 'Cannot modify settings in Demo Sandbox mode. Please log in.' }, { status: 403 });
+    }
 
     const updatedSettings = {
       user_id: userId,

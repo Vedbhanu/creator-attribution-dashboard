@@ -19,12 +19,13 @@ export default function SettingsPage() {
   const [testResult, setTestResult] = useState<string | null>(null);
 
   useEffect(() => {
-    // Load workspace settings
-    fetch('/api/settings')
+    // Load active user's workspace settings
+    const userEmail = typeof window !== 'undefined' ? localStorage.getItem('user_email') : 'demo';
+    fetch(`/api/settings?userId=${encodeURIComponent(userEmail || 'demo')}`)
       .then((res) => res.json())
       .then((data) => {
         if (data.success && data.settings) {
-          setBrandName(data.settings.brand_name || 'Ved Automation');
+          setBrandName(data.settings.brand_name || 'My Workspace');
           setCurrency(data.settings.currency || 'USD');
           setCustomDomain(data.settings.custom_domain || 'attrib.yourdomain.com');
           setWebhookSecret(data.settings.webhook_secret || 'whsec_creator_attrib_982374');
@@ -39,10 +40,12 @@ export default function SettingsPage() {
     setSaved(true);
 
     try {
+      const userEmail = typeof window !== 'undefined' ? localStorage.getItem('user_email') : 'demo';
       const res = await fetch('/api/settings', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
+          userId: userEmail,
           brand_name: brandName,
           currency,
           custom_domain: customDomain,
