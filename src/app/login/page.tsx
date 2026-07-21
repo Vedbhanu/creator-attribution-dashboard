@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { Sparkles, Mail, Lock, ArrowRight, ShieldCheck, AlertCircle } from 'lucide-react';
+import { Sparkles, Mail, Lock, ArrowRight, ShieldCheck, AlertCircle, KeyRound } from 'lucide-react';
 import { isSupabaseConfigured, supabase } from '@/lib/supabase';
 
 export default function LoginPage() {
@@ -98,12 +98,7 @@ export default function LoginPage() {
           </div>
 
           <div className="space-y-1.5">
-            <div className="flex items-center justify-between">
-              <label className="text-xs font-extrabold text-[#111111]">Password</label>
-              <Link href="/forgot-password" className="text-[11px] font-extrabold text-[#4A4FE0] hover:underline">
-                Forgot Password?
-              </Link>
-            </div>
+            <label className="text-xs font-extrabold text-[#111111]">Password</label>
             <div className="relative">
               <Lock className="w-4 h-4 absolute left-3.5 top-3.5 text-[#111111]" />
               <input
@@ -117,6 +112,17 @@ export default function LoginPage() {
             </div>
           </div>
 
+          {/* Prominent Forgot Password Link */}
+          <div className="flex items-center justify-between text-xs font-bold py-1">
+            <Link
+              href="/forgot-password"
+              className="text-[#4A4FE0] hover:underline font-extrabold inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#F7F4EC] border border-[#111111] shadow-[2px_2px_0px_#111111]"
+            >
+              <KeyRound className="w-3.5 h-3.5 text-[#4A4FE0]" />
+              <span>🔑 Forgot Password? Reset Here →</span>
+            </Link>
+          </div>
+
           <button
             type="submit"
             disabled={loading}
@@ -126,7 +132,7 @@ export default function LoginPage() {
           </button>
         </form>
 
-        <div className="text-center pt-2 text-xs font-bold text-[#4B4B4B] space-y-2">
+        <div className="text-center pt-2 text-xs font-bold text-[#4B4B4B] space-y-2 border-t border-[#111111]/10">
           <p>
             Don't have an account yet?{' '}
             <Link href="/signup" className="text-[#4A4FE0] hover:underline font-extrabold">
