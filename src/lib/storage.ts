@@ -80,6 +80,50 @@ const DEMO_SANDBOX_CONTENT: ContentItem[] = [
   }
 ];
 
+const DEMO_SANDBOX_METRICS: ContentAttributionMetrics[] = [
+  {
+    content: DEMO_SANDBOX_CONTENT[0],
+    visitors_count: 620,
+    leads_count: 48,
+    sales_count: 3,
+    total_revenue: 2997.00,
+    visitor_to_lead_cr: 7.7,
+    lead_to_sale_cr: 6.3
+  },
+  {
+    content: DEMO_SANDBOX_CONTENT[1],
+    visitors_count: 380,
+    leads_count: 24,
+    sales_count: 2,
+    total_revenue: 1495.00,
+    visitor_to_lead_cr: 6.3,
+    lead_to_sale_cr: 8.3
+  },
+  {
+    content: DEMO_SANDBOX_CONTENT[2],
+    visitors_count: 240,
+    leads_count: 12,
+    sales_count: 1,
+    total_revenue: 498.00,
+    visitor_to_lead_cr: 5.0,
+    lead_to_sale_cr: 8.3
+  }
+];
+
+const DEMO_SANDBOX_SUMMARY: AnalyticsSummary = {
+  total_content_items: 3,
+  total_visitors: 1240,
+  total_leads: 84,
+  total_sales: 6,
+  total_revenue: 4990.00,
+  overall_conversion_rate: 6.8,
+  platform_breakdown: {
+    'YouTube': { revenue: 2997.00, leads: 48, content_count: 1 },
+    'Twitter/X': { revenue: 1495.00, leads: 24, content_count: 1 },
+    'Newsletter': { revenue: 498.00, leads: 12, content_count: 1 }
+  }
+};
+
 class StorageManager {
   private contentList: ContentItem[] = [];
   private visitorsList: Visitor[] = [...INITIAL_VISITORS];
@@ -112,13 +156,16 @@ class StorageManager {
   }
 
   async getContentBySlug(slug: string): Promise<ContentItem | null> {
+    const memoryItem = this.contentList.find(c => c.tracking_slug === slug);
+    if (memoryItem) return memoryItem;
+
     if (isSupabaseConfigured() && supabase) {
       const { data, error } = await supabase.from('content').select('*').eq('tracking_slug', slug).single();
       if (!error && data) {
         return data as ContentItem;
       }
     }
-    return this.contentList.find(c => c.tracking_slug === slug) || null;
+    return null;
   }
 
   async getContentById(id: string): Promise<ContentItem | null> {
@@ -143,6 +190,7 @@ class StorageManager {
           platform: item.platform,
           url: item.url,
           tracking_slug: item.tracking_slug,
+          user_id: (item as any).user_id || 'demo',
           published_at: item.published_at || new Date().toISOString()
         }])
         .select()
@@ -154,22 +202,22 @@ class StorageManager {
     }
 
     const newItem: ContentItem = {
-      ...item,
       id: 'c-' + Math.random().toString(36).substring(2, 9),
+      ...item,
       created_at: new Date().toISOString()
     };
     this.contentList.unshift(newItem);
     return newItem;
   }
 
-  async updateContent(id: string, partial: Partial<Omit<ContentItem, 'id' | 'created_at' | 'tracking_slug'>>): Promise<ContentItem | null> {
+  async updateContent(id: string, partial: Partial<ContentItem>): Promise<ContentItem | null> {
     if (isSupabaseConfigured() && supabase) {
       const { data, error } = await supabase
         .from('content')
         .update({
           title: partial.title,
           platform: partial.platform,
-          url: partial.url
+          url: partial.url,
         })
         .eq('id', id)
         .select()
@@ -225,11 +273,11 @@ class StorageManager {
     }
 
     const newVisitor: Visitor = {
-      ...visitor,
       id: 'v-' + Math.random().toString(36).substring(2, 9),
+      ...visitor,
       created_at: new Date().toISOString()
     };
-    this.visitorsList.unshift(newVisitor);
+    this.visitorsList.push(newVisitor);
     return newVisitor;
   }
 
@@ -240,7 +288,7 @@ class StorageManager {
         return data as Visitor[];
       }
     }
-    return [...this.visitorsList];
+    return [...this.visitorsList].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
   }
 
   async getVisitorByCookie(cookieId: string): Promise<Visitor | null> {
@@ -253,16 +301,16 @@ class StorageManager {
     return this.visitorsList.find(v => v.cookie_id === cookieId) || null;
   }
 
-  // LEADS
+  // LEAD CAPTURE
   async addLead(lead: Omit<Lead, 'id' | 'created_at'>): Promise<Lead> {
     if (isSupabaseConfigured() && supabase) {
       const { data, error } = await supabase
         .from('leads')
         .insert([{
-          email: lead.email,
-          phone: lead.phone,
+          visitor_id: lead.visitor_id,
           content_id: lead.content_id,
-          visitor_id: lead.visitor_id
+          email: lead.email,
+          phone: lead.phone
         }])
         .select()
         .single();
@@ -273,11 +321,11 @@ class StorageManager {
     }
 
     const newLead: Lead = {
-      ...lead,
       id: 'l-' + Math.random().toString(36).substring(2, 9),
+      ...lead,
       created_at: new Date().toISOString()
     };
-    this.leadsList.unshift(newLead);
+    this.leadsList.push(newLead);
     return newLead;
   }
 
@@ -291,7 +339,7 @@ class StorageManager {
     return [...this.leadsList].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
   }
 
-  // SALES
+  // SALES & REVENUE ATTRIBUTION
   async addSale(sale: Omit<Sale, 'id' | 'created_at'>): Promise<Sale> {
     if (isSupabaseConfigured() && supabase) {
       const { data, error } = await supabase
@@ -299,7 +347,7 @@ class StorageManager {
         .insert([{
           lead_id: sale.lead_id,
           amount: sale.amount,
-          status: sale.status
+          status: sale.status || 'completed'
         }])
         .select()
         .single();
@@ -310,11 +358,12 @@ class StorageManager {
     }
 
     const newSale: Sale = {
-      ...sale,
       id: 's-' + Math.random().toString(36).substring(2, 9),
+      ...sale,
+      status: sale.status || 'completed',
       created_at: new Date().toISOString()
     };
-    this.salesList.unshift(newSale);
+    this.salesList.push(newSale);
     return newSale;
   }
 
@@ -330,6 +379,10 @@ class StorageManager {
 
   // ATTRIBUTION METRICS COMPUTATION
   async getAttributionMetrics(userId?: string): Promise<ContentAttributionMetrics[]> {
+    if (!userId || userId === 'demo' || userId === 'default_user') {
+      return DEMO_SANDBOX_METRICS;
+    }
+
     const contentItems = await this.getContent(userId);
     const visitorsList = await this.getVisitors();
     const leadsList = await this.getLeads();
@@ -364,6 +417,10 @@ class StorageManager {
 
   // DASHBOARD OVERVIEW SUMMARY
   async getAnalyticsSummary(userId?: string): Promise<AnalyticsSummary> {
+    if (!userId || userId === 'demo' || userId === 'default_user') {
+      return DEMO_SANDBOX_SUMMARY;
+    }
+
     const metrics = await this.getAttributionMetrics(userId);
     const visitorsList = await this.getVisitors();
     const leadsList = await this.getLeads();
