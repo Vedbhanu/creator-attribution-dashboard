@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { useRouter, usePathname } from 'next/navigation';
-import { Plus, UserCheck, Zap, LogOut, Settings, ShieldCheck, ChevronDown } from 'lucide-react';
+import { Plus, UserCheck, Zap, LogOut, LogIn, Settings, ShieldCheck, ChevronDown } from 'lucide-react';
 import { isSupabaseConfigured, supabase } from '@/lib/supabase';
 import { useToast } from '@/components/ui/toast';
 
@@ -18,6 +18,7 @@ export function Header() {
   const [userEmail, setUserEmail] = useState('demo@creator.com');
   const [accountTag, setAccountTag] = useState('Sample Sandbox');
   const [isAdmin, setIsAdmin] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
@@ -26,6 +27,8 @@ export function Header() {
     const storedEmail = typeof window !== 'undefined' ? localStorage.getItem('user_email') : null;
     const storedRole = typeof window !== 'undefined' ? localStorage.getItem('user_role') : null;
     const storedName = typeof window !== 'undefined' ? localStorage.getItem('user_name') : null;
+
+    setIsLoggedIn(!!storedEmail);
 
     if (storedEmail) {
       setUserEmail(storedEmail);
@@ -153,13 +156,24 @@ export function Header() {
                   </Link>
                 )}
 
-                <button
-                  onClick={handleLogout}
-                  className="w-full px-3 py-2 rounded-xl text-xs font-black text-rose-600 hover:bg-rose-100 flex items-center gap-2 transition-colors border-t border-[#111111]/10 pt-2"
-                >
-                  <LogOut className="w-4 h-4 text-rose-600" />
-                  <span>Log Out →</span>
-                </button>
+                {isLoggedIn ? (
+                  <button
+                    onClick={handleLogout}
+                    className="w-full px-3 py-2 rounded-xl text-xs font-black text-rose-600 hover:bg-rose-100 flex items-center gap-2 transition-colors border-t border-[#111111]/10 pt-2"
+                  >
+                    <LogOut className="w-4 h-4 text-rose-600" />
+                    <span>Log Out →</span>
+                  </button>
+                ) : (
+                  <Link
+                    href="/login"
+                    onClick={() => setDropdownOpen(false)}
+                    className="w-full px-3 py-2.5 rounded-xl text-xs font-black text-white bg-[#4A4FE0] hover:bg-[#3b40cc] flex items-center justify-center gap-2 transition-colors border-t border-[#111111]/10 mt-1 shadow-[2px_2px_0px_#111111]"
+                  >
+                    <LogIn className="w-4 h-4 text-white" />
+                    <span>Sign In / Create Account →</span>
+                  </Link>
+                )}
               </div>
             )}
           </div>
