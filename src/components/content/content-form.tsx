@@ -113,10 +113,6 @@ export function ContentForm() {
           <ArrowLeft className="w-4 h-4" />
           Back to Content Library
         </button>
-
-        <span className="text-xs font-black px-3 py-1 rounded-full bg-[#F6D74C] text-[#111111] border-2 border-[#111111] shadow-[2px_2px_0px_#111111]">
-          ⚡ Light Theme UI
-        </span>
       </div>
 
       <div className="p-8 rounded-3xl bg-white border-3 border-[#111111] shadow-[8px_8px_0px_#111111] space-y-6">

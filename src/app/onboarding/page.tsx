@@ -215,13 +215,23 @@ export default function OnboardingWizardPage() {
                 />
               </div>
 
-              <button
-                type="submit"
-                disabled={loading}
-                className="w-full py-4 rounded-xl bg-[#4A4FE0] hover:bg-[#3b40cc] text-white font-black text-xs border-2 border-[#111111] shadow-[4px_4px_0px_#111111] active:translate-x-[2px] active:translate-y-[2px] active:shadow-[2px_2px_0px_#111111] transition-all flex items-center justify-center gap-2 disabled:opacity-50"
-              >
-                <span>{loading ? 'Generating Tracking Link...' : 'Generate Tracking Link →'}</span>
-              </button>
+              <div className="flex items-center gap-3 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setStep(1)}
+                  className="w-1/3 py-4 rounded-xl bg-white hover:bg-[#F7F4EC] text-[#111111] font-black text-xs border-2 border-[#111111] shadow-[3px_3px_0px_#111111] active:translate-x-[2px] active:translate-y-[2px] active:shadow-[1px_1px_0px_#111111] transition-all flex items-center justify-center gap-1"
+                >
+                  <span>← Back</span>
+                </button>
+
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="w-2/3 py-4 rounded-xl bg-[#4A4FE0] hover:bg-[#3b40cc] text-white font-black text-xs border-2 border-[#111111] shadow-[4px_4px_0px_#111111] active:translate-x-[2px] active:translate-y-[2px] active:shadow-[2px_2px_0px_#111111] transition-all flex items-center justify-center gap-2 disabled:opacity-50"
+                >
+                  <span>{loading ? 'Generating Link...' : 'Generate Link →'}</span>
+                </button>
+              </div>
             </form>
           </div>
         )}
@@ -268,12 +278,22 @@ export default function OnboardingWizardPage() {
               </div>
             </div>
 
-            <button
-              onClick={() => router.push('/dashboard')}
-              className="w-full py-4 rounded-xl bg-[#EC4899] hover:bg-[#D6317C] text-white font-black text-xs border-2 border-[#111111] shadow-[4px_4px_0px_#111111] active:translate-x-[2px] active:translate-y-[2px] active:shadow-[2px_2px_0px_#111111] transition-all flex items-center justify-center gap-2"
-            >
-              <span>Open My Live Dashboard →</span>
-            </button>
+            <div className="flex items-center gap-3 pt-2">
+              <button
+                type="button"
+                onClick={() => setStep(2)}
+                className="w-1/3 py-4 rounded-xl bg-white hover:bg-[#F7F4EC] text-[#111111] font-black text-xs border-2 border-[#111111] shadow-[3px_3px_0px_#111111] active:translate-x-[2px] active:translate-y-[2px] active:shadow-[1px_1px_0px_#111111] transition-all flex items-center justify-center gap-1"
+              >
+                <span>← Edit Video</span>
+              </button>
+
+              <button
+                onClick={() => router.push('/dashboard')}
+                className="w-2/3 py-4 rounded-xl bg-[#EC4899] hover:bg-[#D6317C] text-white font-black text-xs border-2 border-[#111111] shadow-[4px_4px_0px_#111111] active:translate-x-[2px] active:translate-y-[2px] active:shadow-[2px_2px_0px_#111111] transition-all flex items-center justify-center gap-2"
+              >
+                <span>Open Dashboard →</span>
+              </button>
+            </div>
           </div>
         )}
       </main>

@@ -1,29 +1,70 @@
 'use client';
 
-import { useState } from 'react';
-import { Settings, Globe, DollarSign, Key, ShieldCheck, Sparkles, Save, Check, Copy, Zap, CheckCircle2, RefreshCw } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Settings, Globe, Key, Sparkles, Save, Check, Copy, Zap, RefreshCw } from 'lucide-react';
+import { useToast } from '@/components/ui/toast';
 
 export default function SettingsPage() {
+  const { showToast } = useToast();
   const [brandName, setBrandName] = useState('Ved Automation');
   const [currency, setCurrency] = useState('USD');
   const [customDomain, setCustomDomain] = useState('attrib.yourdomain.com');
   const [webhookSecret, setWebhookSecret] = useState('whsec_creator_attrib_982374');
   const [saved, setSaved] = useState(false);
   const [copiedSecret, setCopiedSecret] = useState(false);
+  const [loading, setLoading] = useState(true);
   
   // Webhook Tester State
   const [testingWebhook, setTestingWebhook] = useState(false);
   const [testResult, setTestResult] = useState<string | null>(null);
 
-  const handleSave = (e: React.FormEvent) => {
+  useEffect(() => {
+    // Load workspace settings
+    fetch('/api/settings')
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.success && data.settings) {
+          setBrandName(data.settings.brand_name || 'Ved Automation');
+          setCurrency(data.settings.currency || 'USD');
+          setCustomDomain(data.settings.custom_domain || 'attrib.yourdomain.com');
+          setWebhookSecret(data.settings.webhook_secret || 'whsec_creator_attrib_982374');
+        }
+      })
+      .catch((err) => console.error(err))
+      .finally(() => setLoading(false));
+  }, []);
+
+  const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
     setSaved(true);
-    setTimeout(() => setSaved(false), 2000);
+
+    try {
+      const res = await fetch('/api/settings', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          brand_name: brandName,
+          currency,
+          custom_domain: customDomain,
+          webhook_secret: webhookSecret,
+        }),
+      });
+
+      const json = await res.json();
+      if (json.success) {
+        showToast('⚡ Workspace & Branding settings saved successfully!');
+      }
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setTimeout(() => setSaved(false), 2000);
+    }
   };
 
   const handleCopySecret = () => {
     navigator.clipboard.writeText(webhookSecret);
     setCopiedSecret(true);
+    showToast('🔑 Webhook secret copied to clipboard!');
     setTimeout(() => setCopiedSecret(false), 2000);
   };
 
@@ -46,6 +87,7 @@ export default function SettingsPage() {
       const json = await res.json();
       if (json.success) {
         setTestResult('✅ Webhook Endpoint Live & Verified! ($1.00 attributed successfully)');
+        showToast('✅ Test webhook verified!');
       } else {
         setTestResult(`⚠️ Endpoint Live: ${json.error}`);
       }

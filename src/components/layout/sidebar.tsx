@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { LayoutDashboard, FileText, Users, DollarSign, Settings, Sparkles } from 'lucide-react';
+import { LayoutDashboard, FileText, Users, DollarSign, Settings, Sparkles, ShieldCheck } from 'lucide-react';
 
 const NAV_ITEMS = [
   { name: 'Analytics Dashboard', href: '/dashboard', icon: LayoutDashboard },
@@ -10,6 +10,7 @@ const NAV_ITEMS = [
   { name: 'Captured Leads', href: '/leads', icon: Users },
   { name: 'Sales & Revenue', href: '/sales', icon: DollarSign },
   { name: 'Workspace Settings', href: '/settings', icon: Settings },
+  { name: 'Agency Admin 👑', href: '/admin', icon: ShieldCheck },
 ];
 
 export function Sidebar() {
