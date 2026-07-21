@@ -31,7 +31,8 @@ export function ContentList() {
 
   const fetchContent = async () => {
     try {
-      const res = await fetch('/api/content');
+      const userEmail = typeof window !== 'undefined' ? localStorage.getItem('user_email') : 'demo';
+      const res = await fetch(`/api/content?userId=${encodeURIComponent(userEmail || 'demo')}`);
       const json = await res.json();
       if (json.success && json.metrics) {
         setMetrics(json.metrics);

@@ -50,21 +50,65 @@ const INITIAL_SALES: Sale[] = [
   { id: 's-2', lead_id: 'l-2', amount: 199.00, status: 'completed', created_at: new Date(Date.now() - 2 * 86400000).toISOString() }
 ];
 
+const DEMO_SANDBOX_CONTENT: ContentItem[] = [
+  {
+    id: 'c-demo-1',
+    title: 'How I Built a $10k/mo YouTube Funnel',
+    platform: 'YouTube',
+    url: 'https://youtube.com/watch?v=demo123',
+    tracking_slug: 'yt-demo-10k-funnel',
+    published_at: new Date(Date.now() - 3 * 86400000).toISOString(),
+    created_at: new Date(Date.now() - 3 * 86400000).toISOString()
+  },
+  {
+    id: 'c-demo-2',
+    title: 'High-Converting X Thread Strategy',
+    platform: 'Twitter/X',
+    url: 'https://x.com/demo/status/123456',
+    tracking_slug: 'x-demo-thread-strategy',
+    published_at: new Date(Date.now() - 2 * 86400000).toISOString(),
+    created_at: new Date(Date.now() - 2 * 86400000).toISOString()
+  },
+  {
+    id: 'c-demo-3',
+    title: 'Substack Newsletter Monetization Blueprint',
+    platform: 'Newsletter',
+    url: 'https://substack.com/demo-post',
+    tracking_slug: 'nl-demo-monetization',
+    published_at: new Date(Date.now() - 1 * 86400000).toISOString(),
+    created_at: new Date(Date.now() - 1 * 86400000).toISOString()
+  }
+];
+
 class StorageManager {
-  private contentList: ContentItem[] = [...INITIAL_CONTENT];
+  private contentList: ContentItem[] = [];
   private visitorsList: Visitor[] = [...INITIAL_VISITORS];
   private leadsList: Lead[] = [...INITIAL_LEADS];
   private salesList: Sale[] = [...INITIAL_SALES];
 
   // CONTENT CRUD
-  async getContent(): Promise<ContentItem[]> {
+  async getContent(userId?: string): Promise<ContentItem[]> {
+    // If Demo Sandbox Mode or unauthenticated, return curated demo content only
+    if (!userId || userId === 'demo' || userId === 'default_user') {
+      return DEMO_SANDBOX_CONTENT;
+    }
+
     if (isSupabaseConfigured() && supabase) {
-      const { data, error } = await supabase.from('content').select('*').order('created_at', { ascending: false });
+      const { data, error } = await supabase
+        .from('content')
+        .select('*')
+        .eq('user_id', userId)
+        .order('created_at', { ascending: false });
+
       if (!error && data) {
         return data as ContentItem[];
       }
     }
-    return [...this.contentList].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+
+    // Scoped memory fallback
+    return this.contentList
+      .filter(c => (c as any).user_id === userId)
+      .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
   }
 
   async getContentBySlug(slug: string): Promise<ContentItem | null> {
@@ -285,8 +329,8 @@ class StorageManager {
   }
 
   // ATTRIBUTION METRICS COMPUTATION
-  async getAttributionMetrics(): Promise<ContentAttributionMetrics[]> {
-    const contentItems = await this.getContent();
+  async getAttributionMetrics(userId?: string): Promise<ContentAttributionMetrics[]> {
+    const contentItems = await this.getContent(userId);
     const visitorsList = await this.getVisitors();
     const leadsList = await this.getLeads();
     const salesList = await this.getSales();
@@ -319,8 +363,8 @@ class StorageManager {
   }
 
   // DASHBOARD OVERVIEW SUMMARY
-  async getAnalyticsSummary(): Promise<AnalyticsSummary> {
-    const metrics = await this.getAttributionMetrics();
+  async getAnalyticsSummary(userId?: string): Promise<AnalyticsSummary> {
+    const metrics = await this.getAttributionMetrics(userId);
     const visitorsList = await this.getVisitors();
     const leadsList = await this.getLeads();
     const salesList = await this.getSales();
