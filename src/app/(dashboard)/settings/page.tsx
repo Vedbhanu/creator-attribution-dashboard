@@ -17,7 +17,8 @@ export default function SettingsPage() {
   const [saved, setSaved] = useState(false);
   const [copiedSecret, setCopiedSecret] = useState(false);
   const [loading, setLoading] = useState(true);
-  
+  const [isConnected, setIsConnected] = useState(false);
+
   // Webhook Tester State
   const [testingWebhook, setTestingWebhook] = useState(false);
   const [testResult, setTestResult] = useState<string | null>(null);
@@ -27,6 +28,16 @@ export default function SettingsPage() {
   const [injectResult, setInjectResult] = useState<string | null>(null);
 
   useEffect(() => {
+    // Check url searchParams to show custom OAuth toast
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('oauth') === 'simulated') {
+      showToast('⚡ YouTube Channel Connected (Sandbox mode)!', 'success');
+    } else if (params.get('oauth') === 'success') {
+      showToast('✅ YouTube Channel connected successfully live!', 'success');
+    } else if (params.get('oauth') === 'failed') {
+      showToast('⚠️ YouTube connection failed.', 'error');
+    }
+
     // Load active user's workspace settings
     const userEmail = typeof window !== 'undefined' ? localStorage.getItem('user_email') : 'demo';
     fetch(`/api/settings?userId=${encodeURIComponent(userEmail || 'demo')}`)
@@ -40,11 +51,41 @@ export default function SettingsPage() {
           setYoutubeChannelUrl(data.settings.youtube_channel_url || '');
           setYoutubeAutoInject(!!data.settings.youtube_auto_inject);
           setCtaTemplate(data.settings.cta_template || '🔥 Get Priority Access here 👉 {tracking_link}');
+          setIsConnected(!!data.settings.youtube_access_token);
         }
       })
       .catch((err) => console.error(err))
       .finally(() => setLoading(false));
   }, []);
+
+  const handleConnectYoutube = () => {
+    const userEmail = typeof window !== 'undefined' ? localStorage.getItem('user_email') : 'demo';
+    window.location.href = `/api/auth/youtube?userId=${encodeURIComponent(userEmail || 'demo')}`;
+  };
+
+  const handleDisconnectYoutube = async () => {
+    try {
+      const userEmail = typeof window !== 'undefined' ? localStorage.getItem('user_email') : 'demo';
+      const res = await fetch('/api/settings', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          userId: userEmail,
+          youtube_access_token: null,
+          youtube_refresh_token: null,
+          youtube_auto_inject: false
+        })
+      });
+      const json = await res.json();
+      if (json.success) {
+        setIsConnected(false);
+        setYoutubeAutoInject(false);
+        showToast('Disconnected YouTube Channel.', 'success');
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  };
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -370,16 +411,37 @@ export default function SettingsPage() {
 
                 <div className="p-3 rounded-xl bg-[#F7F4EC] border-2 border-[#111111] flex items-center justify-between gap-3 shadow-[2px_2px_0px_#111111]">
                   <div className="text-[11px] font-bold text-[#111111]">
-                    Status: <span className="text-[#4A4FE0] font-black">Connected (Simulated Sandbox Sandbox)</span>
+                    Status: <span className={isConnected ? 'text-[#EC4899] font-black' : 'text-[#4B4B4B] font-black'}>
+                      {isConnected ? '✅ Live YouTube Connected' : '❌ Disconnected'}
+                    </span>
                   </div>
-                  <button
-                    type="button"
-                    onClick={handleTestInject}
-                    disabled={testingInject}
-                    className="px-3.5 py-1.5 rounded-lg bg-[#EC4899] hover:bg-[#D6317C] text-white text-[11px] font-black border-2 border-[#111111] shadow-[2px_2px_0px_#111111] active:translate-y-[1px] transition-all disabled:opacity-50"
-                  >
-                    {testingInject ? 'Testing...' : '🧪 Test Description Injector'}
-                  </button>
+                  {isConnected ? (
+                    <div className="flex items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={handleTestInject}
+                        disabled={testingInject}
+                        className="px-3.5 py-1.5 rounded-lg bg-[#EC4899] hover:bg-[#D6317C] text-white text-[11px] font-black border-2 border-[#111111] shadow-[2px_2px_0px_#111111] active:translate-y-[1px] transition-all disabled:opacity-50"
+                      >
+                        {testingInject ? 'Testing...' : '🧪 Test Injector'}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={handleDisconnectYoutube}
+                        className="px-3.5 py-1.5 rounded-lg bg-red-100 text-red-600 text-[11px] font-black border-2 border-[#111111]"
+                      >
+                        Disconnect
+                      </button>
+                    </div>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={handleConnectYoutube}
+                      className="px-3.5 py-1.5 rounded-lg bg-[#4A4FE0] hover:bg-[#3b40cc] text-white text-[11px] font-black border-2 border-[#111111] shadow-[2px_2px_0px_#111111] active:translate-y-[1px] transition-all"
+                    >
+                      Connect YouTube Channel
+                    </button>
+                  )}
                 </div>
 
                 {injectResult && (
