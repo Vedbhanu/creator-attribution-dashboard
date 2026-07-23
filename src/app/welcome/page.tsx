@@ -93,7 +93,7 @@ export default function LandingPage() {
               rel="noopener noreferrer"
               className="w-full sm:w-auto px-8 py-4 rounded-2xl bg-white hover:bg-[#F7F4EC] text-[#111111] font-black text-base border-3 border-[#111111] shadow-[5px_5px_0px_#111111] active:translate-x-[2px] active:translate-y-[2px] active:shadow-[2px_2px_0px_#111111] transition-all flex items-center justify-center gap-2"
             >
-              <span>Schedule Strategy Call ($1,000 DFY) →</span>
+              <span>Schedule Strategy Call ($999 DFY) →</span>
             </a>
           </div>
 
@@ -336,16 +336,16 @@ export default function LandingPage() {
 
           <div className="p-6 rounded-2xl bg-[#F7F4EC] border-2 border-[#111111] max-w-md mx-auto space-y-4">
             <div className="space-y-1">
-              <div className="text-xs font-extrabold text-[#4B4B4B] uppercase">Done-For-You Package</div>
-              <div className="text-3xl font-black text-[#111111]">$1,000 <span className="text-sm font-bold text-[#4B4B4B]">one-time setup</span></div>
-              <div className="text-xs font-bold text-[#4A4FE0]">+ $30–$50 / month managed hosting & support</div>
+              <div className="text-xs font-extrabold text-[#4B4B4B] uppercase">Done-For-You Autopilot Package</div>
+              <div className="text-3xl font-black text-[#111111]">$999 <span className="text-sm font-bold text-[#4B4B4B]">one-time payment</span></div>
+              <div className="text-xs font-bold text-[#4A4FE0]">Includes Lifetime Hosting & Support (No Subscriptions)</div>
             </div>
 
             <ul className="text-xs font-bold text-[#111111] space-y-2 text-left pt-2 border-t border-[#111111]/20">
-              <li className="flex items-center gap-2"><Check className="w-4 h-4 text-[#4A4FE0]" /> 100% Turnkey Setup & Database Config</li>
-              <li className="flex items-center gap-2"><Check className="w-4 h-4 text-[#4A4FE0]" /> Unlimited Content Tracking Links</li>
-              <li className="flex items-center gap-2"><Check className="w-4 h-4 text-[#4A4FE0]" /> Hosted Public Lead Pages & API</li>
-              <li className="flex items-center gap-2"><Check className="w-4 h-4 text-[#4A4FE0]" /> Revenue Attribution Funnel Leaderboard</li>
+              <li className="flex items-center gap-2"><Check className="w-4 h-4 text-[#4A4FE0]" /> 100% Turnkey Subdomain & Database Setup</li>
+              <li className="flex items-center gap-2"><Check className="w-4 h-4 text-[#4A4FE0]" /> YouTube Auto-Injection integration</li>
+              <li className="flex items-center gap-2"><Check className="w-4 h-4 text-[#4A4FE0]" /> Unlimited Custom Tracking Redirect Links</li>
+              <li className="flex items-center gap-2"><Check className="w-4 h-4 text-[#4A4FE0]" /> Revenue Attribution Dashboard</li>
             </ul>
           </div>
 
