@@ -237,7 +237,7 @@ export function ContentForm() {
           <div className="p-5 rounded-2xl bg-[#F7F4EC] border-2 border-[#111111] space-y-3 shadow-[3px_3px_0px_#111111]">
             <div className="flex items-center gap-2 text-xs font-extrabold text-[#111111]">
               <Sparkles className="w-4 h-4 text-[#EC4899]" />
-              Generated Tracking URLs Preview
+              Generated Tracking URLs & Smart Referer Tip
             </div>
             <div className="space-y-1.5 text-xs font-mono font-bold">
               <p className="truncate">
@@ -247,6 +247,14 @@ export function ContentForm() {
               <p className="truncate">
                 <span className="text-[#4B4B4B]">Hosted Lead Form: </span>
                 <span className="text-[#EC4899]">{domain}/c/{trackingSlug || 'your-slug'}</span>
+              </p>
+            </div>
+            <div className="p-3 rounded-xl bg-[#F6D74C] border-2 border-[#111111] text-xs font-bold text-[#111111] space-y-1">
+              <div className="font-black text-[#111111] flex items-center gap-1">
+                <span>⚡ ZERO COPY-PASTING PRO TIP:</span>
+              </div>
+              <p className="text-[11px] font-semibold leading-relaxed">
+                Paste <code>{domain}/r/{trackingSlug || 'yt-master'}</code> into your YouTube **Upload Defaults** description template ONCE. Our Smart Referer engine auto-detects every new video title and logs metrics automatically!
               </p>
             </div>
           </div>

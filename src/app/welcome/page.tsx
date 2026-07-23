@@ -282,19 +282,19 @@ export default function LandingPage() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="p-6 rounded-2xl bg-white border-2.5 border-[#111111] shadow-[4px_4px_0px_#111111] space-y-2">
               <h3 className="text-sm font-black text-[#111111] flex items-center gap-2">
-                <span className="text-[#4A4FE0]">Q:</span> How does it track sales?
+                <span className="text-[#4A4FE0]">Q:</span> Do I need to create a link for every single video?
               </h3>
               <p className="text-xs font-semibold text-[#4B4B4B] leading-relaxed">
-                We connect to your Stripe, PayPal, or LemonSqueezy webhooks. When a customer buys, we match their email or 30-day cookie back to the original content link!
+                <strong>No! Zero copy-pasting required.</strong> Paste 1 master link in your YouTube Upload Defaults description template ONCE. Our Smart Referer engine auto-detects every new YouTube video title automatically on the fly.
               </p>
             </div>
 
             <div className="p-6 rounded-2xl bg-white border-2.5 border-[#111111] shadow-[4px_4px_0px_#111111] space-y-2">
               <h3 className="text-sm font-black text-[#111111] flex items-center gap-2">
-                <span className="text-[#4A4FE0]">Q:</span> Do I need to code?
+                <span className="text-[#4A4FE0]">Q:</span> How does it track sales?
               </h3>
               <p className="text-xs font-semibold text-[#4B4B4B] leading-relaxed">
-                Zero coding required. Use our hosted lead capture pages (<code className="bg-[#F7F4EC] px-1 py-0.5 rounded text-[#4A4FE0]">/c/your-link</code>) or paste our 1-line tracking script on your site.
+                We connect to your Stripe, PayPal, or LemonSqueezy webhooks. When a customer buys, we match their email or 30-day cookie back to the original content link!
               </p>
             </div>
 
