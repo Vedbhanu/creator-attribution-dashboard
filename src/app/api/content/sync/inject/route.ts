@@ -4,51 +4,48 @@ import { isSupabaseConfigured, supabase } from '@/lib/supabase';
 
 // 1. Fetch current video snippet from Google YouTube API
 async function getYouTubeVideoSnippet(videoId: string, accessToken: string) {
-  try {
-    const res = await fetch(
-      `https://www.googleapis.com/youtube/v3/videos?id=${videoId}&part=snippet`,
-      {
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-          Accept: 'application/json'
-        }
-      }
-    );
-    if (res.ok) {
-      const data = await res.json();
-      if (data.items && data.items.length > 0) {
-        return data.items[0].snippet;
+  const res = await fetch(
+    `https://www.googleapis.com/youtube/v3/videos?id=${videoId}&part=snippet`,
+    {
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        Accept: 'application/json'
       }
     }
-  } catch (err) {
-    console.error('Failed to fetch YouTube video details:', err);
+  );
+  if (!res.ok) {
+    const errText = await res.text();
+    throw new Error(`Google API Error (${res.status}): ${errText}`);
   }
-  return null;
+  const data = await res.json();
+  if (data.items && data.items.length > 0) {
+    return data.items[0].snippet;
+  }
+  throw new Error(`Video with ID ${videoId} was not found on your YouTube channel.`);
 }
 
 // 2. Push updated video snippet back to Google YouTube API
 async function updateYouTubeVideoSnippet(videoId: string, snippet: any, accessToken: string) {
-  try {
-    const res = await fetch(
-      'https://www.googleapis.com/youtube/v3/videos?part=snippet',
-      {
-        method: 'PUT',
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-          'Content-Type': 'application/json',
-          Accept: 'application/json'
-        },
-        body: JSON.stringify({
-          id: videoId,
-          snippet: snippet
-        })
-      }
-    );
-    return res.ok;
-  } catch (err) {
-    console.error('Failed to update YouTube video description:', err);
-    return false;
+  const res = await fetch(
+    'https://www.googleapis.com/youtube/v3/videos?part=snippet',
+    {
+      method: 'PUT',
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        'Content-Type': 'application/json',
+        Accept: 'application/json'
+      },
+      body: JSON.stringify({
+        id: videoId,
+        snippet: snippet
+      })
+    }
+  );
+  if (!res.ok) {
+    const errText = await res.text();
+    throw new Error(`Google Update Error (${res.status}): ${errText}`);
   }
+  return true;
 }
 
 export async function POST(request: Request) {
@@ -97,34 +94,32 @@ export async function POST(request: Request) {
     }
 
     // 4. Live Production API execution
-    const currentSnippet = await getYouTubeVideoSnippet(videoId, accessToken);
-    if (!currentSnippet) {
-      return NextResponse.json({ success: false, error: 'Could not fetch video details from YouTube API. Verify OAuth permissions.' }, { status: 400 });
+    try {
+      const currentSnippet = await getYouTubeVideoSnippet(videoId, accessToken);
+      
+      // Avoid injecting multiple times
+      if (currentSnippet.description.includes(trackingUrl)) {
+        return NextResponse.json({ success: true, message: 'Link already present in video description.' });
+      }
+
+      // Prepend the CTA snippet to the description
+      const updatedDescription = `${customCta}\n\n${currentSnippet.description}`;
+      const updatedSnippet = {
+        ...currentSnippet,
+        description: updatedDescription
+      };
+
+      await updateYouTubeVideoSnippet(videoId, updatedSnippet, accessToken);
+
+      return NextResponse.json({
+        success: true,
+        simulated: false,
+        message: '✅ YouTube Description updated successfully live on your channel!',
+        injectedCta: customCta
+      });
+    } catch (err: any) {
+      return NextResponse.json({ success: false, error: err.message }, { status: 400 });
     }
-
-    // Avoid injecting multiple times
-    if (currentSnippet.description.includes(trackingUrl)) {
-      return NextResponse.json({ success: true, message: 'Link already present in video description.' });
-    }
-
-    // Prepend the CTA snippet to the description
-    const updatedDescription = `${customCta}\n\n${currentSnippet.description}`;
-    const updatedSnippet = {
-      ...currentSnippet,
-      description: updatedDescription
-    };
-
-    const success = await updateYouTubeVideoSnippet(videoId, updatedSnippet, accessToken);
-    if (!success) {
-      return NextResponse.json({ success: false, error: 'Failed to update video description on YouTube.' }, { status: 500 });
-    }
-
-    return NextResponse.json({
-      success: true,
-      simulated: false,
-      message: '✅ YouTube Description updated successfully live on your channel!',
-      injectedCta: customCta
-    });
   } catch (error: any) {
     return NextResponse.json({ success: false, error: error.message }, { status: 500 });
   }
