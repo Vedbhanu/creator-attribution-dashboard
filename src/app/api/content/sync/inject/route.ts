@@ -82,8 +82,9 @@ export async function POST(request: Request) {
     }
 
     // 3. Fallback/Simulated Mode (Marc Lou Sandbox Delight)
-    // If no real Google Access Token is configured yet, we simulate the action successfully so they can inspect & test immediately
-    if (!accessToken || !autoInjectEnabled) {
+    // If no real Google Access Token is configured yet or it is a mock sandbox token, we simulate the action successfully
+    const isMockToken = accessToken && accessToken.includes('mock');
+    if (!accessToken || !autoInjectEnabled || isMockToken) {
       console.log(`[SIMULATION] Injecting tracking link into video: ${videoId}`);
       console.log(`[SIMULATION] CTA Snippet: ${customCta}`);
       
