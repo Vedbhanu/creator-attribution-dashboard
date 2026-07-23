@@ -223,12 +223,6 @@ export function ContentList() {
                   <span className="px-3 py-0.5 rounded-full text-[10px] font-extrabold bg-[#4A4FE0] text-white border-2 border-[#111111] shadow-[1px_1px_0px_#111111]">
                     {content.platform}
                   </span>
-                  {(content.title.startsWith('⚡') || content.tracking_slug.startsWith('yt-')) && (
-                    <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black bg-[#F6D74C] text-[#111111] border-2 border-[#111111] shadow-[1px_1px_0px_#111111] flex items-center gap-1">
-                      <Sparkles className="w-3 h-3 text-[#EC4899]" />
-                      Auto-Detected Video
-                    </span>
-                  )}
                   <span className="text-xs text-[#4B4B4B] font-bold">
                     Published {new Date(content.published_at).toLocaleDateString()}
                   </span>
