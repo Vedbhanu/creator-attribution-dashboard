@@ -26,14 +26,32 @@ export async function GET(request: Request) {
       console.log(`[SIMULATION] Simulated Google OAuth exchange successful for user: ${userId}`);
       
       if (isSupabaseConfigured() && supabase) {
+        let existing: any = {};
+        try {
+          const { data } = await supabase
+            .from('workspace_settings')
+            .select('*')
+            .eq('user_id', userId)
+            .single();
+          if (data) existing = data;
+        } catch (e) {}
+
+        const newSettings = {
+          user_id: userId,
+          brand_name: existing?.brand_name || `${userId.split('@')[0]}'s Workspace`,
+          currency: existing?.currency || 'USD',
+          custom_domain: existing?.custom_domain || `attrib.${userId.split('@')[0].toLowerCase()}.com`,
+          webhook_secret: existing?.webhook_secret || `whsec_${userId.split('@')[0].toLowerCase()}_982374`,
+          youtube_channel_url: existing?.youtube_channel_url || '',
+          youtube_access_token: 'mock_simulated_google_oauth_access_token_18237198',
+          youtube_refresh_token: 'mock_simulated_google_oauth_refresh_token_98231',
+          youtube_auto_inject: true,
+          updated_at: new Date().toISOString()
+        };
+
         await supabase
           .from('workspace_settings')
-          .update({
-            youtube_access_token: 'mock_simulated_google_oauth_access_token_18237198',
-            youtube_refresh_token: 'mock_simulated_google_oauth_refresh_token_98231',
-            youtube_auto_inject: true
-          })
-          .eq('user_id', userId);
+          .upsert([newSettings], { onConflict: 'user_id' });
       }
 
       return NextResponse.redirect(`${protocol}://${host}/settings?oauth=simulated`);
@@ -63,16 +81,34 @@ export async function GET(request: Request) {
     const tokenData = await tokenResponse.json();
     const { access_token, refresh_token } = tokenData;
 
-    // 3. Save access and refresh tokens to database
+    // 3. Save access and refresh tokens to database using Upsert
     if (isSupabaseConfigured() && supabase) {
+      let existing: any = {};
+      try {
+        const { data } = await supabase
+          .from('workspace_settings')
+          .select('*')
+          .eq('user_id', userId)
+          .single();
+        if (data) existing = data;
+      } catch (e) {}
+
+      const newSettings = {
+        user_id: userId,
+        brand_name: existing?.brand_name || `${userId.split('@')[0]}'s Workspace`,
+        currency: existing?.currency || 'USD',
+        custom_domain: existing?.custom_domain || `attrib.${userId.split('@')[0].toLowerCase()}.com`,
+        webhook_secret: existing?.webhook_secret || `whsec_${userId.split('@')[0].toLowerCase()}_982374`,
+        youtube_channel_url: existing?.youtube_channel_url || '',
+        youtube_access_token: access_token,
+        youtube_refresh_token: refresh_token || existing?.youtube_refresh_token || null,
+        youtube_auto_inject: true,
+        updated_at: new Date().toISOString()
+      };
+
       await supabase
         .from('workspace_settings')
-        .update({
-          youtube_access_token: access_token,
-          youtube_refresh_token: refresh_token || null,
-          youtube_auto_inject: true
-        })
-        .eq('user_id', userId);
+        .upsert([newSettings], { onConflict: 'user_id' });
     }
 
     return NextResponse.redirect(`${protocol}://${host}/settings?oauth=success`);
