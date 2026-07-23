@@ -14,11 +14,13 @@ export default function OnboardingWizardPage() {
   // Step 1 State
   const [brandName, setBrandName] = useState('');
   const [currency, setCurrency] = useState('USD');
+  const [youtubeChannelUrl, setYoutubeChannelUrl] = useState('');
 
   // Step 2 State
   const [title, setTitle] = useState('');
   const [platform, setPlatform] = useState('YouTube');
   const [url, setUrl] = useState('');
+  const [syncedVideos, setSyncedVideos] = useState<any[]>([]);
 
   // Step 3 State
   const [createdSlug, setCreatedSlug] = useState('');
@@ -29,10 +31,49 @@ export default function OnboardingWizardPage() {
     setOrigin(getAppDomain());
   }, []);
 
-  const handleStep1Submit = (e: React.FormEvent) => {
+  const handleStep1Submit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!brandName) return;
-    setStep(2);
+    setLoading(true);
+
+    try {
+      const userEmail = typeof window !== 'undefined' ? localStorage.getItem('user_email') : 'demo';
+      
+      // Save settings to backend database
+      await fetch('/api/settings', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          userId: userEmail,
+          brand_name: brandName,
+          currency,
+          youtube_channel_url: youtubeChannelUrl
+        })
+      });
+
+      // Sync YouTube Channel Feed if handle/URL provided
+      if (youtubeChannelUrl.trim()) {
+        const syncRes = await fetch('/api/content/sync', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            userId: userEmail,
+            youtube_channel_url: youtubeChannelUrl
+          })
+        });
+        const syncJson = await syncRes.json();
+        if (syncJson.success && syncJson.items && syncJson.items.length > 0) {
+          setSyncedVideos(syncJson.items);
+        }
+      }
+      
+      setStep(2);
+    } catch (err) {
+      console.error('Onboarding workspace save issue:', err);
+      setStep(2);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleStep2Submit = async (e: React.FormEvent) => {
@@ -41,6 +82,7 @@ export default function OnboardingWizardPage() {
     setLoading(true);
 
     try {
+      const userEmail = typeof window !== 'undefined' ? localStorage.getItem('user_email') : 'demo';
       const slug = generateShortSlug(title);
       
       const res = await fetch('/api/content', {
@@ -51,6 +93,7 @@ export default function OnboardingWizardPage() {
           platform,
           url,
           tracking_slug: slug,
+          userId: userEmail,
           published_at: new Date().toISOString(),
         }),
       });
@@ -185,11 +228,29 @@ export default function OnboardingWizardPage() {
                 </div>
               </div>
 
+              <div className="space-y-1.5">
+                <label className="text-xs font-extrabold text-[#111111]">YouTube Channel URL / Handle (Optional Autopilot Sync)</label>
+                <div className="relative">
+                  <Video className="w-4 h-4 absolute left-3.5 top-3.5 text-[#111111]" />
+                  <input
+                    type="text"
+                    placeholder="e.g. @AlexMedia or https://youtube.com/@AlexMedia"
+                    value={youtubeChannelUrl}
+                    onChange={(e) => setYoutubeChannelUrl(e.target.value)}
+                    className="w-full pl-10 pr-4 py-3 rounded-xl bg-[#F7F4EC] border-2 border-[#111111] text-sm text-[#111111] font-bold focus:outline-none focus:bg-white"
+                  />
+                </div>
+                <p className="text-[10px] text-[#4B4B4B] font-bold">
+                  Recommended: Paste your handle to auto-generate tracking links for your videos!
+                </p>
+              </div>
+
               <button
                 type="submit"
-                className="w-full py-4 rounded-xl bg-[#EC4899] hover:bg-[#D6317C] text-white font-black text-xs border-2 border-[#111111] shadow-[4px_4px_0px_#111111] active:translate-x-[2px] active:translate-y-[2px] active:shadow-[2px_2px_0px_#111111] transition-all flex items-center justify-center gap-2"
+                disabled={loading}
+                className="w-full py-4 rounded-xl bg-[#EC4899] hover:bg-[#D6317C] text-white font-black text-xs border-2 border-[#111111] shadow-[4px_4px_0px_#111111] active:translate-x-[2px] active:translate-y-[2px] active:shadow-[2px_2px_0px_#111111] transition-all flex items-center justify-center gap-2 disabled:opacity-50"
               >
-                <span>Continue to Add Content →</span>
+                <span>{loading ? 'Setting up Workspace...' : 'Continue to Add Content →'}</span>
               </button>
             </form>
           </div>
@@ -197,75 +258,128 @@ export default function OnboardingWizardPage() {
 
         {step === 2 && (
           <div className="p-8 rounded-3xl bg-white border-3 border-[#111111] shadow-[8px_8px_0px_#111111] space-y-6">
-            <div className="space-y-2">
-              <span className="px-3 py-1 rounded-full bg-[#4A4FE0] text-white text-xs font-black border border-[#111111]">
-                Step 2 of 3
-              </span>
-              <h1 className="text-2xl font-black text-[#111111]">Register Your First Content Item</h1>
-              <p className="text-xs text-[#4B4B4B] font-semibold">
-                Add a YouTube video, X post, newsletter, or podcast episode you want to track.
-              </p>
-            </div>
+            {syncedVideos.length > 0 ? (
+              <div className="space-y-5">
+                <div className="space-y-2">
+                  <span className="px-3 py-1 rounded-full bg-[#F6D74C] text-[#111111] text-xs font-black border border-[#111111] uppercase animate-bounce">
+                    ⚡ Autopilot Synced!
+                  </span>
+                  <h1 className="text-2xl font-black text-[#111111]">YouTube Links Generated!</h1>
+                  <p className="text-xs text-[#4B4B4B] font-semibold">
+                    We pulled the latest uploads from your channel and automatically generated tracking links:
+                  </p>
+                </div>
 
-            <form onSubmit={handleStep2Submit} className="space-y-4">
-              <div className="space-y-1.5">
-                <label className="text-xs font-extrabold text-[#111111]">Content Title</label>
-                <input
-                  type="text"
-                  required
-                  placeholder="e.g. How I Built My First SaaS in 14 Days"
-                  value={title}
-                  onChange={(e) => setTitle(e.target.value)}
-                  className="w-full px-4 py-3 rounded-xl bg-[#F7F4EC] border-2 border-[#111111] text-sm text-[#111111] font-bold focus:outline-none focus:bg-white"
-                />
+                <div className="space-y-3 max-h-64 overflow-y-auto pr-1">
+                  {syncedVideos.slice(0, 3).map((video, idx) => {
+                    const fullTrackingUrl = `${domain}/r/${video.tracking_slug}`;
+                    return (
+                      <div key={idx} className="p-3.5 rounded-xl bg-[#F7F4EC] border-2 border-[#111111] space-y-1.5 shadow-[2px_2px_0px_#111111]">
+                        <div className="font-extrabold text-[#111111] text-xs truncate">{video.title}</div>
+                        <div className="flex items-center justify-between gap-2">
+                          <span className="text-[10px] font-mono text-[#4A4FE0] truncate">{fullTrackingUrl}</span>
+                          <button
+                            onClick={() => copyToClipboard(fullTrackingUrl, `sync-${idx}`)}
+                            className="text-[#4A4FE0] hover:text-[#EC4899] text-[10px] font-black whitespace-nowrap"
+                          >
+                            {copiedLink === `sync-${idx}` ? 'Copied!' : 'Copy Link'}
+                          </button>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+
+                <div className="flex items-center gap-3 pt-2">
+                  <button
+                    type="button"
+                    onClick={() => setStep(1)}
+                    className="w-1/3 py-4 rounded-xl bg-white hover:bg-[#F7F4EC] text-[#111111] font-black text-xs border-2 border-[#111111] shadow-[3px_3px_0px_#111111] active:translate-x-[2px] active:translate-y-[2px] active:shadow-[1px_1px_0px_#111111] transition-all flex items-center justify-center gap-1"
+                  >
+                    <span>← Back</span>
+                  </button>
+
+                  <button
+                    onClick={() => setStep(3)}
+                    className="w-2/3 py-4 rounded-xl bg-[#EC4899] hover:bg-[#D6317C] text-white font-black text-xs border-2 border-[#111111] shadow-[4px_4px_0px_#111111] active:translate-x-[2px] active:translate-y-[2px] active:shadow-[2px_2px_0px_#111111] transition-all flex items-center justify-center gap-1"
+                  >
+                    <span>Continue to Webhooks →</span>
+                  </button>
+                </div>
               </div>
+            ) : (
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <span className="px-3 py-1 rounded-full bg-[#4A4FE0] text-white text-xs font-black border border-[#111111]">
+                    Step 2 of 3
+                  </span>
+                  <h1 className="text-2xl font-black text-[#111111]">Register Your First Content Item</h1>
+                  <p className="text-xs text-[#4B4B4B] font-semibold">
+                    Add a YouTube video, X post, newsletter, or podcast episode you want to track.
+                  </p>
+                </div>
 
-              <div className="space-y-1.5">
-                <label className="text-xs font-extrabold text-[#111111]">Platform Channel</label>
-                <select
-                  value={platform}
-                  onChange={(e) => setPlatform(e.target.value)}
-                  className="w-full px-4 py-3 rounded-xl bg-[#F7F4EC] border-2 border-[#111111] text-sm text-[#111111] font-bold focus:outline-none focus:bg-white"
-                >
-                  <option value="YouTube">YouTube Video</option>
-                  <option value="Twitter">Twitter / X Post</option>
-                  <option value="Newsletter">Substack / Newsletter</option>
-                  <option value="LinkedIn">LinkedIn Post</option>
-                  <option value="TikTok">TikTok Video</option>
-                  <option value="Podcast">Podcast Episode</option>
-                </select>
+                <form onSubmit={handleStep2Submit} className="space-y-4">
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-extrabold text-[#111111]">Content Title</label>
+                    <input
+                      type="text"
+                      required
+                      placeholder="e.g. How I Built My First SaaS in 14 Days"
+                      value={title}
+                      onChange={(e) => setTitle(e.target.value)}
+                      className="w-full px-4 py-3 rounded-xl bg-[#F7F4EC] border-2 border-[#111111] text-sm text-[#111111] font-bold focus:outline-none focus:bg-white"
+                    />
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-extrabold text-[#111111]">Platform Channel</label>
+                    <select
+                      value={platform}
+                      onChange={(e) => setPlatform(e.target.value)}
+                      className="w-full px-4 py-3 rounded-xl bg-[#F7F4EC] border-2 border-[#111111] text-sm text-[#111111] font-bold focus:outline-none focus:bg-white"
+                    >
+                      <option value="YouTube">YouTube Video</option>
+                      <option value="Twitter/X">Twitter / X Post</option>
+                      <option value="Newsletter">Substack / Newsletter</option>
+                      <option value="LinkedIn">LinkedIn Post</option>
+                      <option value="TikTok">TikTok Video</option>
+                      <option value="Podcast">Podcast Episode</option>
+                    </select>
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-extrabold text-[#111111]">Original Post / Video URL</label>
+                    <input
+                      type="url"
+                      required
+                      placeholder="https://youtube.com/watch?v=..."
+                      value={url}
+                      onChange={(e) => setUrl(e.target.value)}
+                      className="w-full px-4 py-3 rounded-xl bg-[#F7F4EC] border-2 border-[#111111] text-sm text-[#111111] font-bold focus:outline-none focus:bg-white"
+                    />
+                  </div>
+
+                  <div className="flex items-center gap-3 pt-2">
+                    <button
+                      type="button"
+                      onClick={() => setStep(1)}
+                      className="w-1/3 py-4 rounded-xl bg-white hover:bg-[#F7F4EC] text-[#111111] font-black text-xs border-2 border-[#111111] shadow-[3px_3px_0px_#111111] active:translate-x-[2px] active:translate-y-[2px] active:shadow-[1px_1px_0px_#111111] transition-all flex items-center justify-center gap-1"
+                    >
+                      <span>← Back</span>
+                    </button>
+
+                    <button
+                      type="submit"
+                      disabled={loading}
+                      className="w-2/3 py-4 rounded-xl bg-[#4A4FE0] hover:bg-[#3b40cc] text-white font-black text-xs border-2 border-[#111111] shadow-[4px_4px_0px_#111111] active:translate-x-[2px] active:translate-y-[2px] active:shadow-[2px_2px_0px_#111111] transition-all flex items-center justify-center gap-2 disabled:opacity-50"
+                    >
+                      <span>{loading ? 'Generating Link...' : 'Generate Link →'}</span>
+                    </button>
+                  </div>
+                </form>
               </div>
-
-              <div className="space-y-1.5">
-                <label className="text-xs font-extrabold text-[#111111]">Original Post / Video URL</label>
-                <input
-                  type="url"
-                  required
-                  placeholder="https://youtube.com/watch?v=..."
-                  value={url}
-                  onChange={(e) => setUrl(e.target.value)}
-                  className="w-full px-4 py-3 rounded-xl bg-[#F7F4EC] border-2 border-[#111111] text-sm text-[#111111] font-bold focus:outline-none focus:bg-white"
-                />
-              </div>
-
-              <div className="flex items-center gap-3 pt-2">
-                <button
-                  type="button"
-                  onClick={() => setStep(1)}
-                  className="w-1/3 py-4 rounded-xl bg-white hover:bg-[#F7F4EC] text-[#111111] font-black text-xs border-2 border-[#111111] shadow-[3px_3px_0px_#111111] active:translate-x-[2px] active:translate-y-[2px] active:shadow-[1px_1px_0px_#111111] transition-all flex items-center justify-center gap-1"
-                >
-                  <span>← Back</span>
-                </button>
-
-                <button
-                  type="submit"
-                  disabled={loading}
-                  className="w-2/3 py-4 rounded-xl bg-[#4A4FE0] hover:bg-[#3b40cc] text-white font-black text-xs border-2 border-[#111111] shadow-[4px_4px_0px_#111111] active:translate-x-[2px] active:translate-y-[2px] active:shadow-[2px_2px_0px_#111111] transition-all flex items-center justify-center gap-2 disabled:opacity-50"
-                >
-                  <span>{loading ? 'Generating Link...' : 'Generate Link →'}</span>
-                </button>
-              </div>
-            </form>
+            )}
           </div>
         )}
 
