@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Settings, Globe, Key, Sparkles, Save, Check, Copy, Zap, RefreshCw } from 'lucide-react';
+import { Settings, Globe, Key, Sparkles, Save, Check, Copy, Zap, RefreshCw, Youtube, Video } from 'lucide-react';
 import { useToast } from '@/components/ui/toast';
 
 export default function SettingsPage() {
@@ -10,6 +10,8 @@ export default function SettingsPage() {
   const [currency, setCurrency] = useState('USD');
   const [customDomain, setCustomDomain] = useState('attrib.yourdomain.com');
   const [webhookSecret, setWebhookSecret] = useState('whsec_creator_attrib_982374');
+  const [youtubeChannelUrl, setYoutubeChannelUrl] = useState('');
+  const [syncingChannel, setSyncingChannel] = useState(false);
   const [saved, setSaved] = useState(false);
   const [copiedSecret, setCopiedSecret] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -29,6 +31,7 @@ export default function SettingsPage() {
           setCurrency(data.settings.currency || 'USD');
           setCustomDomain(data.settings.custom_domain || 'attrib.yourdomain.com');
           setWebhookSecret(data.settings.webhook_secret || 'whsec_creator_attrib_982374');
+          setYoutubeChannelUrl(data.settings.youtube_channel_url || '');
         }
       })
       .catch((err) => console.error(err))
@@ -50,6 +53,7 @@ export default function SettingsPage() {
           currency,
           custom_domain: customDomain,
           webhook_secret: webhookSecret,
+          youtube_channel_url: youtubeChannelUrl
         }),
       });
 
@@ -61,6 +65,35 @@ export default function SettingsPage() {
       console.error(err);
     } finally {
       setTimeout(() => setSaved(false), 2000);
+    }
+  };
+
+  const handleSyncChannel = async () => {
+    if (!youtubeChannelUrl) {
+      showToast('⚠️ Please enter a YouTube channel URL or handle first.', 'error');
+      return;
+    }
+    setSyncingChannel(true);
+    try {
+      const userEmail = typeof window !== 'undefined' ? localStorage.getItem('user_email') : 'demo';
+      const res = await fetch('/api/content/sync', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          userId: userEmail,
+          youtube_channel_url: youtubeChannelUrl
+        })
+      });
+      const json = await res.json();
+      if (json.success) {
+        showToast(`⚡ Sync complete! Generated ${json.added} new tracking links.`, 'success');
+      } else {
+        showToast(`⚠️ Sync failed: ${json.error}`, 'error');
+      }
+    } catch (err: any) {
+      showToast(`❌ Connection failed: ${err.message}`, 'error');
+    } finally {
+      setSyncingChannel(false);
     }
   };
 
@@ -224,6 +257,39 @@ export default function SettingsPage() {
             </div>
             <p className="text-[11px] text-[#4B4B4B] font-bold">
               Webhook URL: <code>https://creator-attribution-dashboard.vercel.app/api/webhooks/sales</code>
+            </p>
+          </div>
+        </div>
+
+        {/* YouTube Autopilot Channel Sync */}
+        <div className="p-6 rounded-3xl bg-white border-3 border-[#111111] shadow-[5px_5px_0px_#111111] space-y-4">
+          <div className="flex items-center justify-between border-b-2 border-[#111111] pb-3">
+            <div className="flex items-center gap-2">
+              <Youtube className="w-5 h-5 text-[#FF0000]" />
+              <h2 className="text-base font-black text-[#111111]">YouTube Autopilot Sync</h2>
+            </div>
+            <button
+              type="button"
+              onClick={handleSyncChannel}
+              disabled={syncingChannel}
+              className="px-3.5 py-1.5 rounded-xl bg-[#F6D74C] text-[#111111] border-2 border-[#111111] text-xs font-black shadow-[2px_2px_0px_#111111] inline-flex items-center gap-1.5 hover:bg-white transition-all disabled:opacity-50"
+            >
+              {syncingChannel ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <Video className="w-3.5 h-3.5 text-[#4A4FE0]" />}
+              <span>{syncingChannel ? 'Syncing...' : '🔄 Sync Channel Feed'}</span>
+            </button>
+          </div>
+
+          <div className="space-y-2">
+            <label className="text-xs font-extrabold text-[#111111]">YouTube Channel URL or Handle (@handle)</label>
+            <input
+              type="text"
+              value={youtubeChannelUrl}
+              onChange={(e) => setYoutubeChannelUrl(e.target.value)}
+              placeholder="e.g. https://www.youtube.com/@AlexMedia"
+              className="w-full px-4 py-3 rounded-xl bg-[#F7F4EC] border-2 border-[#111111] text-xs font-bold text-[#111111] focus:outline-none focus:bg-white"
+            />
+            <p className="text-[11px] text-[#4B4B4B] font-bold">
+              When configured, our system automatically tracks your uploads and generates short redirect links (<code className="bg-[#F7F4EC] px-1 py-0.5 rounded text-[#4A4FE0]">/r/yt-slug</code>) for your videos.
             </p>
           </div>
         </div>

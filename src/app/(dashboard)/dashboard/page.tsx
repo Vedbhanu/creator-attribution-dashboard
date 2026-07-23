@@ -33,6 +33,26 @@ export default function AnalyticsDashboardPage() {
       }
 
       const activeUserId = userEmail || 'demo';
+
+      // Background Sync Trigger for YouTube Channel Autopilot
+      if (activeUserId !== 'demo') {
+        fetch(`/api/settings?userId=${encodeURIComponent(activeUserId)}`)
+          .then(res => res.json())
+          .then(settingsJson => {
+            if (settingsJson.success && settingsJson.settings?.youtube_channel_url) {
+              fetch('/api/content/sync', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  userId: activeUserId,
+                  youtube_channel_url: settingsJson.settings.youtube_channel_url
+                })
+              }).catch(err => console.warn('Silent channel sync issue:', err));
+            }
+          })
+          .catch(err => console.warn('Settings load warning:', err));
+      }
+
       const res = await fetch(`/api/analytics?userId=${encodeURIComponent(activeUserId)}`);
       const json = await res.json();
       if (json.success) {

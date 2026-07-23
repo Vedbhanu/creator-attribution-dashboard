@@ -14,7 +14,8 @@ export async function GET(request: Request) {
         brand_name: 'Demo Creator Workspace',
         currency: 'USD',
         custom_domain: 'attrib.democreator.com',
-        webhook_secret: 'whsec_sample_demo_key'
+        webhook_secret: 'whsec_sample_demo_key',
+        youtube_channel_url: ''
       }
     });
   }
@@ -47,7 +48,8 @@ export async function GET(request: Request) {
       brand_name: `${formattedName}'s Workspace`,
       currency: 'USD',
       custom_domain: `attrib.${nameFromEmail.toLowerCase()}.com`,
-      webhook_secret: `whsec_${nameFromEmail.toLowerCase()}_${Math.floor(100000 + Math.random() * 900000)}`
+      webhook_secret: `whsec_${nameFromEmail.toLowerCase()}_${Math.floor(100000 + Math.random() * 900000)}`,
+      youtube_channel_url: ''
     }
   });
 }
@@ -55,28 +57,39 @@ export async function GET(request: Request) {
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const { userId, brand_name, currency, custom_domain, webhook_secret } = body;
+    const { userId, brand_name, currency, custom_domain, webhook_secret, youtube_channel_url } = body;
 
     if (!userId || userId === 'demo') {
       return NextResponse.json({ success: false, error: 'Cannot modify settings in Demo Sandbox mode. Please log in.' }, { status: 403 });
     }
 
-    const updatedSettings = {
+    const updatedSettings: any = {
       user_id: userId,
       brand_name: brand_name || 'My Workspace',
       currency: currency || 'USD',
       custom_domain: custom_domain || 'attrib.yourdomain.com',
       webhook_secret: webhook_secret || 'whsec_creator_attrib_982374',
+      youtube_channel_url: youtube_channel_url || '',
       updated_at: new Date().toISOString()
     };
 
     if (isSupabaseConfigured() && supabase) {
+      // Attempt upsert with all parameters
       const { error } = await supabase
         .from('workspace_settings')
         .upsert([updatedSettings], { onConflict: 'user_id' });
 
       if (error) {
-        console.error('Supabase settings upsert error:', error.message);
+        console.warn('Supabase settings custom columns upsert warning (Self-healing fallback active):', error.message);
+        // Fallback: Strip youtube_channel_url if the column does not exist on the user's Supabase instance yet
+        const { youtube_channel_url, ...legacySettings } = updatedSettings;
+        const { error: fallbackErr } = await supabase
+          .from('workspace_settings')
+          .upsert([legacySettings], { onConflict: 'user_id' });
+
+        if (fallbackErr) {
+          console.error('Supabase settings fallback upsert error:', fallbackErr.message);
+        }
       }
     }
 
