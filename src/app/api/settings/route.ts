@@ -63,13 +63,48 @@ export async function POST(request: Request) {
       return NextResponse.json({ success: false, error: 'Cannot modify settings in Demo Sandbox mode. Please log in.' }, { status: 403 });
     }
 
+    // Retrieve existing credentials to prevent wiping them out on brand settings save
+    let existingAuth = {
+      youtube_access_token: null,
+      youtube_refresh_token: null,
+      youtube_auto_inject: false,
+      cta_template: '🔥 Get Priority Access here 👉 {tracking_link}'
+    };
+
+    if (isSupabaseConfigured() && supabase) {
+      try {
+        const { data } = await supabase
+          .from('workspace_settings')
+          .select('youtube_access_token, youtube_refresh_token, youtube_auto_inject, cta_template')
+          .eq('user_id', userId)
+          .single();
+        if (data) {
+          existingAuth = {
+            youtube_access_token: data.youtube_access_token,
+            youtube_refresh_token: data.youtube_refresh_token,
+            youtube_auto_inject: !!data.youtube_auto_inject,
+            cta_template: data.cta_template || existingAuth.cta_template
+          };
+        }
+      } catch (e) {
+        console.warn('OAuth settings merge skip:', e);
+      }
+    }
+
     const updatedSettings: any = {
       user_id: userId,
       brand_name: brand_name || 'My Workspace',
       currency: currency || 'USD',
       custom_domain: custom_domain || 'attrib.yourdomain.com',
       webhook_secret: webhook_secret || 'whsec_creator_attrib_982374',
-      youtube_channel_url: youtube_channel_url || '',
+      youtube_channel_url: youtube_channel_url !== undefined ? youtube_channel_url : '',
+      
+      // Preserve or set OAuth fields
+      youtube_auto_inject: body.hasOwnProperty('youtube_auto_inject') ? body.youtube_auto_inject : existingAuth.youtube_auto_inject,
+      cta_template: body.hasOwnProperty('cta_template') ? body.cta_template : existingAuth.cta_template,
+      youtube_access_token: body.hasOwnProperty('youtube_access_token') ? body.youtube_access_token : existingAuth.youtube_access_token,
+      youtube_refresh_token: body.hasOwnProperty('youtube_refresh_token') ? body.youtube_refresh_token : existingAuth.youtube_refresh_token,
+      
       updated_at: new Date().toISOString()
     };
 
@@ -81,8 +116,8 @@ export async function POST(request: Request) {
 
       if (error) {
         console.warn('Supabase settings custom columns upsert warning (Self-healing fallback active):', error.message);
-        // Fallback: Strip youtube_channel_url if the column does not exist on the user's Supabase instance yet
-        const { youtube_channel_url, ...legacySettings } = updatedSettings;
+        // Fallback: Strip youtube_channel_url and tokens if columns do not exist yet
+        const { youtube_channel_url, youtube_auto_inject, cta_template, youtube_access_token, youtube_refresh_token, ...legacySettings } = updatedSettings;
         const { error: fallbackErr } = await supabase
           .from('workspace_settings')
           .upsert([legacySettings], { onConflict: 'user_id' });
