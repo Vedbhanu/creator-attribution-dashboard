@@ -90,6 +90,53 @@ export default function AnalyticsDashboardPage() {
         </div>
       </div>
 
+      {/* First-Time Creator Quickstart Banner */}
+      {summary.total_content_items === 0 && (
+        <div className="p-8 rounded-3xl bg-[#F6D74C] border-3 border-[#111111] shadow-[8px_8px_0px_#111111] space-y-5">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div className="space-y-1">
+              <span className="px-3 py-1 rounded-full bg-[#4A4FE0] text-white text-xs font-black border border-[#111111] uppercase">
+                ⚡ 3-Step Setup Checklist
+              </span>
+              <h2 className="text-2xl font-black text-[#111111] pt-1">
+                Welcome to your Creator Attribution Workspace!
+              </h2>
+              <p className="text-xs font-bold text-[#111111] max-w-xl">
+                Get ready to discover which specific YouTube videos, X posts, or newsletters generate real cash.
+              </p>
+            </div>
+            <Link
+              href="/content/new"
+              className="px-6 py-3.5 rounded-xl bg-[#EC4899] hover:bg-[#D6317C] text-white font-black text-xs border-2 border-[#111111] shadow-[3px_3px_0px_#111111] inline-flex items-center gap-2 self-start sm:self-auto transition-all"
+            >
+              <Plus className="w-4 h-4 text-white" />
+              <span>Create First Link →</span>
+            </Link>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-2">
+            <div className="p-4 rounded-2xl bg-white border-2 border-[#111111] space-y-2 shadow-[2px_2px_0px_#111111]">
+              <div className="text-xs font-black text-[#4A4FE0]">Step 1: Create Tracking Link</div>
+              <p className="text-xs font-semibold text-[#4B4B4B]">
+                Register a YouTube video or X post to generate a short tracking link (<code className="bg-[#F7F4EC] px-1 py-0.5 rounded text-[#4A4FE0]">/r/slug</code>).
+              </p>
+            </div>
+            <div className="p-4 rounded-2xl bg-white border-2 border-[#111111] space-y-2 shadow-[2px_2px_0px_#111111]">
+              <div className="text-xs font-black text-[#EC4899]">Step 2: Collect Leads & Clicks</div>
+              <p className="text-xs font-semibold text-[#4B4B4B]">
+                Share your hosted opt-in page (<code className="bg-[#F7F4EC] px-1 py-0.5 rounded text-[#EC4899]">/c/slug</code>) or add your tracking link in bio/desc.
+              </p>
+            </div>
+            <div className="p-4 rounded-2xl bg-white border-2 border-[#111111] space-y-2 shadow-[2px_2px_0px_#111111]">
+              <div className="text-xs font-black text-[#111111]">Step 3: Track Revenue Webhooks</div>
+              <p className="text-xs font-semibold text-[#4B4B4B]">
+                Test your PayPal/Payoneer/Zapier sales webhook in Settings (<code className="bg-[#F7F4EC] px-1 py-0.5 rounded text-[#111111]">/settings</code>).
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* KPI Overview Summary */}
       <OverviewMetrics summary={summary} />
 

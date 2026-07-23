@@ -23,6 +23,7 @@ export function ContentForm() {
   const [title, setTitle] = useState('');
   const [platform, setPlatform] = useState<PlatformType>('YouTube');
   const [url, setUrl] = useState('');
+  const [destinationUrl, setDestinationUrl] = useState('');
   const [trackingSlug, setTrackingSlug] = useState('');
   const [isCustomSlug, setIsCustomSlug] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -86,7 +87,14 @@ export function ContentForm() {
       const response = await fetch('/api/content', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ title, platform, url, tracking_slug: trackingSlug, userId: userEmail }),
+        body: JSON.stringify({ 
+          title, 
+          platform, 
+          url, 
+          destination_url: destinationUrl || undefined,
+          tracking_slug: trackingSlug, 
+          userId: userEmail 
+        }),
       });
 
       const data = await response.json();
@@ -134,9 +142,9 @@ export function ContentForm() {
         <form onSubmit={handleSubmit} className="space-y-6">
           {/* Target Destination URL */}
           <div className="space-y-2">
-            <label className="text-xs font-extrabold text-[#111111]">Original / Destination URL *</label>
+            <label className="text-xs font-extrabold text-[#111111]">Original Content / Video URL *</label>
             <input
-              type="url"
+              type="text"
               required
               placeholder="e.g. https://youtube.com/watch?v=12345"
               value={url}
@@ -144,7 +152,22 @@ export function ContentForm() {
               className="w-full px-4 py-3 rounded-xl bg-[#F7F4EC] border-2 border-[#111111] text-[#111111] text-xs font-bold focus:outline-none focus:bg-white transition-all placeholder:text-[#8A8A8A]"
             />
             <p className="text-[11px] text-[#4B4B4B] font-semibold">
-              When visitors click your generated tracking link, they will be automatically redirected to this address.
+              The original YouTube video, X thread, or post URL.
+            </p>
+          </div>
+
+          {/* Custom Thank-You / Checkout Redirect URL */}
+          <div className="space-y-2">
+            <label className="text-xs font-extrabold text-[#111111]">Custom Thank-You / Offer Page URL (Optional)</label>
+            <input
+              type="text"
+              placeholder="e.g. https://mybrand.com/thank-you or https://buy.stripe.com/..."
+              value={destinationUrl}
+              onChange={(e) => setDestinationUrl(e.target.value)}
+              className="w-full px-4 py-3 rounded-xl bg-[#F7F4EC] border-2 border-[#111111] text-[#111111] text-xs font-bold focus:outline-none focus:bg-white transition-all placeholder:text-[#8A8A8A]"
+            />
+            <p className="text-[11px] text-[#4B4B4B] font-semibold">
+              If set, leads submitting the hosted form (/c/slug) will be redirected here after opting in instead of the YouTube video.
             </p>
           </div>
 

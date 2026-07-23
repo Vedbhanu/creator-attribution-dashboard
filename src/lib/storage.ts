@@ -130,6 +130,16 @@ class StorageManager {
   private leadsList: Lead[] = [...INITIAL_LEADS];
   private salesList: Sale[] = [...INITIAL_SALES];
 
+  private sanitizeUrl(rawUrl?: string): string {
+    if (!rawUrl) return '';
+    const trimmed = rawUrl.trim();
+    if (!trimmed) return '';
+    if (!/^https?:\/\//i.test(trimmed)) {
+      return `https://${trimmed}`;
+    }
+    return trimmed;
+  }
+
   // CONTENT CRUD
   async getContent(userId?: string): Promise<ContentItem[]> {
     // If Demo Sandbox Mode or unauthenticated, return curated demo content only
@@ -182,13 +192,17 @@ class StorageManager {
   }
 
   async createContent(item: Omit<ContentItem, 'id' | 'created_at'>): Promise<ContentItem> {
+    const sanitizedUrl = this.sanitizeUrl(item.url);
+    const sanitizedDestUrl = item.destination_url ? this.sanitizeUrl(item.destination_url) : undefined;
+
     if (isSupabaseConfigured() && supabase) {
       const { data, error } = await supabase
         .from('content')
         .insert([{
           title: item.title,
           platform: item.platform,
-          url: item.url,
+          url: sanitizedUrl,
+          destination_url: sanitizedDestUrl,
           tracking_slug: item.tracking_slug,
           user_id: (item as any).user_id || 'demo',
           published_at: item.published_at || new Date().toISOString()
@@ -204,6 +218,8 @@ class StorageManager {
     const newItem: ContentItem = {
       id: 'c-' + Math.random().toString(36).substring(2, 9),
       ...item,
+      url: sanitizedUrl,
+      ...(sanitizedDestUrl ? { destination_url: sanitizedDestUrl } : {}),
       user_id: (item as any).user_id || 'demo',
       created_at: new Date().toISOString()
     } as any;
@@ -212,14 +228,19 @@ class StorageManager {
   }
 
   async updateContent(id: string, partial: Partial<ContentItem>): Promise<ContentItem | null> {
+    const updatedUrl = partial.url ? this.sanitizeUrl(partial.url) : undefined;
+    const updatedDestUrl = partial.destination_url ? this.sanitizeUrl(partial.destination_url) : undefined;
+
     if (isSupabaseConfigured() && supabase) {
+      const updatePayload: any = {};
+      if (partial.title) updatePayload.title = partial.title;
+      if (partial.platform) updatePayload.platform = partial.platform;
+      if (updatedUrl) updatePayload.url = updatedUrl;
+      if (updatedDestUrl !== undefined) updatePayload.destination_url = updatedDestUrl;
+
       const { data, error } = await supabase
         .from('content')
-        .update({
-          title: partial.title,
-          platform: partial.platform,
-          url: partial.url,
-        })
+        .update(updatePayload)
         .eq('id', id)
         .select()
         .single();
@@ -235,7 +256,8 @@ class StorageManager {
         ...this.contentList[index],
         ...(partial.title ? { title: partial.title } : {}),
         ...(partial.platform ? { platform: partial.platform } : {}),
-        ...(partial.url ? { url: partial.url } : {})
+        ...(updatedUrl ? { url: updatedUrl } : {}),
+        ...(updatedDestUrl !== undefined ? { destination_url: updatedDestUrl } : {})
       };
       return this.contentList[index];
     }

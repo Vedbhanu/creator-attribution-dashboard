@@ -1,7 +1,8 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Search, Mail, Plus, CheckCircle2, Clock, Eye, DollarSign, MousePointerClick, ShieldCheck, X } from 'lucide-react';
+import { Search, Mail, Plus, CheckCircle2, Clock, Eye, DollarSign, MousePointerClick, ShieldCheck, X, Download } from 'lucide-react';
+import { exportToCSV } from '@/lib/export';
 
 interface EnrichedLead {
   id: string;
@@ -109,13 +110,23 @@ export function LeadTable() {
           </p>
         </div>
 
-        <button
-          onClick={() => setIsModalOpen(true)}
-          className="inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl text-xs font-extrabold bg-[#EC4899] hover:bg-[#D6317C] text-white border-2 border-[#111111] shadow-[4px_4px_0px_#111111] active:translate-x-[2px] active:translate-y-[2px] active:shadow-[2px_2px_0px_#111111] transition-all self-start sm:self-auto"
-        >
-          <Plus className="w-4 h-4" />
-          Add Manual Lead
-        </button>
+        <div className="flex items-center gap-3 self-start sm:self-auto">
+          <button
+            onClick={() => exportToCSV(filteredLeads, 'creator_leads_export')}
+            className="inline-flex items-center justify-center gap-2 px-4 py-3 rounded-xl text-xs font-extrabold bg-white hover:bg-[#F7F4EC] text-[#111111] border-2 border-[#111111] shadow-[3px_3px_0px_#111111] active:translate-x-[1px] active:translate-y-[1px] transition-all"
+          >
+            <Download className="w-4 h-4 text-[#4A4FE0]" />
+            <span>Export CSV</span>
+          </button>
+
+          <button
+            onClick={() => setIsModalOpen(true)}
+            className="inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl text-xs font-extrabold bg-[#EC4899] hover:bg-[#D6317C] text-white border-2 border-[#111111] shadow-[4px_4px_0px_#111111] active:translate-x-[2px] active:translate-y-[2px] active:shadow-[2px_2px_0px_#111111] transition-all"
+          >
+            <Plus className="w-4 h-4" />
+            Add Manual Lead
+          </button>
+        </div>
       </div>
 
       {/* Search Input */}

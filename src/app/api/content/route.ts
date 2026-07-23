@@ -18,7 +18,7 @@ export async function GET(request: Request) {
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const { title, platform, url, tracking_slug, userId } = body;
+    const { title, platform, url, destination_url, tracking_slug, userId } = body;
 
     if (!title || !platform || !url || !tracking_slug) {
       return NextResponse.json({ success: false, error: 'Missing required fields: title, platform, url, tracking_slug' }, { status: 400 });
@@ -41,6 +41,7 @@ export async function POST(request: Request) {
       title: title.trim(),
       platform,
       url: url.trim(),
+      destination_url: destination_url ? destination_url.trim() : undefined,
       tracking_slug: sanitizedSlug,
       user_id: userId || 'demo',
       published_at: new Date().toISOString()

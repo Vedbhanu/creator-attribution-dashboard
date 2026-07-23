@@ -1,7 +1,8 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Search, DollarSign, Plus, CheckCircle2, AlertCircle, RefreshCw, Zap, Copy, Check, X } from 'lucide-react';
+import { Search, DollarSign, Plus, CheckCircle2, AlertCircle, RefreshCw, Zap, Copy, Check, X, Download } from 'lucide-react';
+import { exportToCSV } from '@/lib/export';
 
 interface EnrichedSale {
   id: string;
@@ -127,6 +128,14 @@ export function SalesTable() {
         </div>
 
         <div className="flex items-center gap-3 self-start sm:self-auto">
+          <button
+            onClick={() => exportToCSV(filteredSales, 'creator_sales_export')}
+            className="inline-flex items-center gap-2 px-4 py-3 rounded-xl text-xs font-extrabold bg-white hover:bg-[#F7F4EC] text-[#111111] border-2 border-[#111111] shadow-[3px_3px_0px_#111111] active:translate-x-[1px] active:translate-y-[1px] transition-all"
+          >
+            <Download className="w-4 h-4 text-[#4A4FE0]" />
+            <span>Export CSV</span>
+          </button>
+
           <button
             onClick={() => setIsWebhookModalOpen(true)}
             className="inline-flex items-center gap-2 px-4 py-3 rounded-xl text-xs font-extrabold bg-[#4A4FE0] hover:bg-[#3b40cc] text-white border-2 border-[#111111] shadow-[3px_3px_0px_#111111] active:translate-x-[1px] active:translate-y-[1px] transition-all"

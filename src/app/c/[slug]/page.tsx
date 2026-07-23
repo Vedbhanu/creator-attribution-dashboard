@@ -58,7 +58,7 @@ export default function HostedLeadCapturePage({ params }: { params: { slug: stri
       }
 
       setSubmitted(true);
-      const targetRedirect = content?.url;
+      const targetRedirect = content?.destination_url || content?.url;
       
       // 2-second countdown timer with progress bar
       if (targetRedirect) {
@@ -111,7 +111,7 @@ export default function HostedLeadCapturePage({ params }: { params: { slug: stri
               {/* Smooth Visual Progress Bar */}
               <div className="p-4 rounded-2xl bg-[#F7F4EC] border-2 border-[#111111] space-y-2 text-left">
                 <div className="flex justify-between text-xs font-extrabold text-[#111111]">
-                  <span>Redirecting to Content...</span>
+                  <span>Redirecting to Offer Page...</span>
                   <span className="text-[#EC4899]">{countdown}s</span>
                 </div>
                 <div className="h-3 rounded-full bg-white border-2 border-[#111111] overflow-hidden">
@@ -122,9 +122,9 @@ export default function HostedLeadCapturePage({ params }: { params: { slug: stri
                 </div>
               </div>
 
-              {content?.url && (
+              {(content?.destination_url || content?.url) && (
                 <a
-                  href={content.url}
+                  href={content.destination_url || content.url}
                   className="inline-flex items-center gap-2 px-6 py-3.5 rounded-xl bg-[#EC4899] hover:bg-[#D6317C] text-white font-black text-sm border-2 border-[#111111] shadow-[4px_4px_0px_#111111] active:translate-x-[2px] active:translate-y-[2px] active:shadow-[2px_2px_0px_#111111] transition-all"
                 >
                   Click Here to Redirect Now <ExternalLink className="w-4 h-4" />

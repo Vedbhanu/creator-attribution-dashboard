@@ -18,7 +18,7 @@ export default function ShareDashboardPage({ params }: { params: { token: string
 
   const fetchAnalytics = async () => {
     try {
-      const res = await fetch('/api/analytics');
+      const res = await fetch(`/api/analytics?token=${encodeURIComponent(params.token)}`);
       const json = await res.json();
       if (json.success) {
         setSummary(json.summary);

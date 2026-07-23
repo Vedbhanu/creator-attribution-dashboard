@@ -23,7 +23,8 @@ export async function PATCH(request: Request, { params }: { params: { id: string
     const updated = await storage.updateContent(params.id, {
       title: body.title,
       platform: body.platform,
-      url: body.url
+      url: body.url,
+      destination_url: body.destination_url
     });
 
     if (!updated) {
