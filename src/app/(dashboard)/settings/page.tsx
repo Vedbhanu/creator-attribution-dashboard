@@ -11,6 +11,8 @@ export default function SettingsPage() {
   const [customDomain, setCustomDomain] = useState('attrib.yourdomain.com');
   const [webhookSecret, setWebhookSecret] = useState('whsec_creator_attrib_982374');
   const [youtubeChannelUrl, setYoutubeChannelUrl] = useState('');
+  const [youtubeAutoInject, setYoutubeAutoInject] = useState(false);
+  const [ctaTemplate, setCtaTemplate] = useState('🔥 Get Priority Access here 👉 {tracking_link}');
   const [syncingChannel, setSyncingChannel] = useState(false);
   const [saved, setSaved] = useState(false);
   const [copiedSecret, setCopiedSecret] = useState(false);
@@ -19,6 +21,10 @@ export default function SettingsPage() {
   // Webhook Tester State
   const [testingWebhook, setTestingWebhook] = useState(false);
   const [testResult, setTestResult] = useState<string | null>(null);
+
+  // Auto-Injection Tester State
+  const [testingInject, setTestingInject] = useState(false);
+  const [injectResult, setInjectResult] = useState<string | null>(null);
 
   useEffect(() => {
     // Load active user's workspace settings
@@ -32,6 +38,8 @@ export default function SettingsPage() {
           setCustomDomain(data.settings.custom_domain || 'attrib.yourdomain.com');
           setWebhookSecret(data.settings.webhook_secret || 'whsec_creator_attrib_982374');
           setYoutubeChannelUrl(data.settings.youtube_channel_url || '');
+          setYoutubeAutoInject(!!data.settings.youtube_auto_inject);
+          setCtaTemplate(data.settings.cta_template || '🔥 Get Priority Access here 👉 {tracking_link}');
         }
       })
       .catch((err) => console.error(err))
@@ -53,7 +61,9 @@ export default function SettingsPage() {
           currency,
           custom_domain: customDomain,
           webhook_secret: webhookSecret,
-          youtube_channel_url: youtubeChannelUrl
+          youtube_channel_url: youtubeChannelUrl,
+          youtube_auto_inject: youtubeAutoInject,
+          cta_template: ctaTemplate
         }),
       });
 
@@ -65,6 +75,35 @@ export default function SettingsPage() {
       console.error(err);
     } finally {
       setTimeout(() => setSaved(false), 2000);
+    }
+  };
+
+  const handleTestInject = async () => {
+    setTestingInject(true);
+    setInjectResult(null);
+    try {
+      const userEmail = typeof window !== 'undefined' ? localStorage.getItem('user_email') : 'demo';
+      const res = await fetch('/api/content/sync/inject', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          userId: userEmail,
+          videoId: 'sZbyenmT070',
+          trackingSlug: 'yt-verification-link',
+          ctaTemplate: ctaTemplate
+        })
+      });
+      const json = await res.json();
+      if (json.success) {
+        setInjectResult(json.message);
+        showToast('✅ Description Injector Verified!');
+      } else {
+        setInjectResult(`⚠️ Error: ${json.error}`);
+      }
+    } catch (err: any) {
+      setInjectResult(`❌ Test Failed: ${err.message}`);
+    } finally {
+      setTestingInject(false);
     }
   };
 
@@ -291,6 +330,65 @@ export default function SettingsPage() {
             <p className="text-[11px] text-[#4B4B4B] font-bold">
               When configured, our system automatically tracks your uploads and generates short redirect links (<code className="bg-[#F7F4EC] px-1 py-0.5 rounded text-[#4A4FE0]">/r/yt-slug</code>) for your videos.
             </p>
+          </div>
+
+          {/* Autopilot Description Injector settings */}
+          <div className="pt-4 border-t-2 border-[#111111]/10 space-y-4">
+            <div className="flex items-center justify-between">
+              <div className="space-y-0.5">
+                <label className="text-xs font-extrabold text-[#111111] flex items-center gap-1.5">
+                  <span className="w-2 h-2 rounded-full bg-[#EC4899]"></span>
+                  Enable YouTube Auto-Injection (Autopilot Pro)
+                </label>
+                <p className="text-[11px] text-[#4B4B4B] font-medium">
+                  Automatically inserts tracking link into new YouTube video descriptions via Google API.
+                </p>
+              </div>
+              <input
+                type="checkbox"
+                checked={youtubeAutoInject}
+                onChange={(e) => setYoutubeAutoInject(e.target.checked)}
+                className="w-5 h-5 rounded border-2 border-[#111111] accent-[#EC4899] cursor-pointer"
+              />
+            </div>
+
+            {youtubeAutoInject && (
+              <div className="space-y-3 pt-2 animate-fadeIn">
+                <div className="space-y-1.5">
+                  <label className="text-xs font-extrabold text-[#111111]">YouTube Description CTA Template</label>
+                  <input
+                    type="text"
+                    value={ctaTemplate}
+                    onChange={(e) => setCtaTemplate(e.target.value)}
+                    placeholder="🔥 Access resources here 👉 {tracking_link}"
+                    className="w-full px-4 py-3 rounded-xl bg-[#F7F4EC] border-2 border-[#111111] text-xs font-bold text-[#111111] focus:outline-none focus:bg-white"
+                  />
+                  <p className="text-[10px] text-[#8A8A8A] font-semibold">
+                    Use <code>{`{tracking_link}`}</code> where you want the short redirect URL to appear.
+                  </p>
+                </div>
+
+                <div className="p-3 rounded-xl bg-[#F7F4EC] border-2 border-[#111111] flex items-center justify-between gap-3 shadow-[2px_2px_0px_#111111]">
+                  <div className="text-[11px] font-bold text-[#111111]">
+                    Status: <span className="text-[#4A4FE0] font-black">Connected (Simulated Sandbox Sandbox)</span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={handleTestInject}
+                    disabled={testingInject}
+                    className="px-3.5 py-1.5 rounded-lg bg-[#EC4899] hover:bg-[#D6317C] text-white text-[11px] font-black border-2 border-[#111111] shadow-[2px_2px_0px_#111111] active:translate-y-[1px] transition-all disabled:opacity-50"
+                  >
+                    {testingInject ? 'Testing...' : '🧪 Test Description Injector'}
+                  </button>
+                </div>
+
+                {injectResult && (
+                  <div className="p-3.5 rounded-xl bg-[#FDFCF8] border-2 border-[#111111] text-xs font-bold text-[#111111] shadow-[2px_2px_0px_#111111]">
+                    {injectResult}
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         </div>
 
