@@ -449,9 +449,9 @@ class StorageManager {
     }
 
     const contentItems = await this.getContent(userId);
-    const visitorsList = await this.getVisitors();
-    const leadsList = await this.getLeads();
-    const salesList = await this.getSales();
+    const visitorsList = await this.getVisitors(userId);
+    const leadsList = await this.getLeads(userId);
+    const salesList = await this.getSales(userId);
 
     return contentItems.map(content => {
       const contentVisitors = visitorsList.filter(v => v.content_id === content.id);
@@ -487,9 +487,9 @@ class StorageManager {
     }
 
     const metrics = await this.getAttributionMetrics(userId);
-    const visitorsList = await this.getVisitors();
-    const leadsList = await this.getLeads();
-    const salesList = await this.getSales();
+    const visitorsList = await this.getVisitors(userId);
+    const leadsList = await this.getLeads(userId);
+    const salesList = await this.getSales(userId);
 
     const totalVisitors = visitorsList.length;
     const totalLeads = leadsList.length;

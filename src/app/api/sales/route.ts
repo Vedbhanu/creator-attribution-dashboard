@@ -1,11 +1,14 @@
 import { NextResponse } from 'next/server';
 import { storage } from '@/lib/storage';
 
-export async function GET() {
+export async function GET(request: Request) {
   try {
-    const salesList = await storage.getSales();
-    const leadsList = await storage.getLeads();
-    const contentItems = await storage.getContent();
+    const { searchParams } = new URL(request.url);
+    const userId = searchParams.get('userId') || 'demo';
+
+    const salesList = await storage.getSales(userId);
+    const leadsList = await storage.getLeads(userId);
+    const contentItems = await storage.getContent(userId);
 
     // Enrich sales records with lead email and content attribution
     const enrichedSales = salesList.map(sale => {

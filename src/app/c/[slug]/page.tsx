@@ -20,13 +20,10 @@ export default function HostedLeadCapturePage({ params }: { params: { slug: stri
 
   const fetchContentInfo = async () => {
     try {
-      const res = await fetch('/api/content');
+      const res = await fetch(`/api/content?slug=${encodeURIComponent(params.slug)}`);
       const json = await res.json();
       if (json.success && json.data) {
-        const found = json.data.find((c: ContentItem) => c.tracking_slug === params.slug);
-        if (found) {
-          setContent(found);
-        }
+        setContent(json.data);
       }
     } catch (err) {
       console.error('Failed to load content for lead capture:', err);

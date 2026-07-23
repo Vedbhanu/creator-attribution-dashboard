@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { Search, Mail, Plus, CheckCircle2, Clock, Eye, DollarSign, MousePointerClick, ShieldCheck, X, Download } from 'lucide-react';
 import { exportToCSV } from '@/lib/export';
+import { isSupabaseConfigured, supabase } from '@/lib/supabase';
 
 interface EnrichedLead {
   id: string;
@@ -40,7 +41,18 @@ export function LeadTable() {
 
   const fetchLeads = async () => {
     try {
-      const res = await fetch('/api/leads');
+      let userEmail = typeof window !== 'undefined' ? localStorage.getItem('user_email') : null;
+      if (!userEmail && isSupabaseConfigured() && supabase) {
+        const { data } = await supabase.auth.getUser();
+        if (data?.user?.email) {
+          userEmail = data.user.email;
+          if (typeof window !== 'undefined') {
+            localStorage.setItem('user_email', userEmail);
+          }
+        }
+      }
+      const activeUserId = userEmail || 'demo';
+      const res = await fetch(`/api/leads?userId=${encodeURIComponent(activeUserId)}`);
       const json = await res.json();
       if (json.success && json.data) {
         setLeads(json.data);
@@ -54,7 +66,15 @@ export function LeadTable() {
 
   const fetchContentOptions = async () => {
     try {
-      const res = await fetch('/api/content');
+      let userEmail = typeof window !== 'undefined' ? localStorage.getItem('user_email') : null;
+      if (!userEmail && isSupabaseConfigured() && supabase) {
+        const { data } = await supabase.auth.getUser();
+        if (data?.user?.email) {
+          userEmail = data.user.email;
+        }
+      }
+      const activeUserId = userEmail || 'demo';
+      const res = await fetch(`/api/content?userId=${encodeURIComponent(activeUserId)}`);
       const json = await res.json();
       if (json.success && json.data) {
         setContentOptions(json.data.map((c: any) => ({ id: c.id, title: c.title })));

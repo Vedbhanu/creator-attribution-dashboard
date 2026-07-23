@@ -5,6 +5,15 @@ export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
     const userId = searchParams.get('userId') || 'demo';
+    const slug = searchParams.get('slug');
+
+    if (slug) {
+      const item = await storage.getContentBySlug(slug);
+      if (!item) {
+        return NextResponse.json({ success: false, error: 'Content item not found' }, { status: 404 });
+      }
+      return NextResponse.json({ success: true, data: item });
+    }
     
     const contentList = await storage.getContent(userId);
     const metricsList = await storage.getAttributionMetrics(userId);

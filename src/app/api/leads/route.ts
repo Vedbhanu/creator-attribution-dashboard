@@ -2,12 +2,15 @@ import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import { storage } from '@/lib/storage';
 
-export async function GET() {
+export async function GET(request: Request) {
   try {
-    const leadsList = await storage.getLeads();
-    const contentItems = await storage.getContent();
-    const visitorsList = await storage.getVisitors();
-    const salesList = await storage.getSales();
+    const { searchParams } = new URL(request.url);
+    const userId = searchParams.get('userId') || 'demo';
+
+    const leadsList = await storage.getLeads(userId);
+    const contentItems = await storage.getContent(userId);
+    const visitorsList = await storage.getVisitors(userId);
+    const salesList = await storage.getSales(userId);
 
     // Join lead objects with content, visitor, and sale info for rich presentation
     const enrichedLeads = leadsList.map(lead => {

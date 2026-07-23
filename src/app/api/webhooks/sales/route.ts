@@ -117,13 +117,52 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    // Tier 4: Fallback Lead Creation
+    // Tier 4: Fallback Lead Creation (Self-healing & Creator Scoped)
     if (!targetLeadId) {
-      const fallbackVisitor = (await storage.getVisitors())[0];
-      const contentId = fallbackVisitor ? fallbackVisitor.content_id : 'c-101';
+      let contentId = 'c-101';
+      let visitorId = 'v-1';
+
+      if (authorizedUserId) {
+        const userContentList = await storage.getContent(authorizedUserId);
+        if (userContentList.length > 0) {
+          contentId = userContentList[0].id;
+        } else {
+          // Auto-create a default content item for the webhook test
+          const defaultItem = await storage.createContent({
+            title: 'Stripe Webhook Verification Offer',
+            platform: 'Payment Gateway',
+            url: 'https://attrib.yourdomain.com/webhook-test',
+            tracking_slug: 'webhook-test-item',
+            user_id: authorizedUserId,
+            published_at: new Date().toISOString()
+          } as any);
+          contentId = defaultItem.id;
+        }
+
+        // Retrieve or generate a mock visitor to ensure full funnel tracking works
+        const visitors = await storage.getVisitors(authorizedUserId);
+        const matchVisitor = visitors.find(v => v.content_id === contentId);
+        if (matchVisitor) {
+          visitorId = matchVisitor.id;
+        } else {
+          const newVisitor = await storage.addVisitor({
+            cookie_id: 'ck_test_' + crypto.randomUUID().slice(-8),
+            content_id: contentId,
+            landing_page: 'https://attrib.yourdomain.com/webhook-test',
+            utm_source: 'payment_gateway',
+            utm_medium: 'webhook',
+            utm_campaign: 'verification_test'
+          });
+          visitorId = newVisitor.id;
+        }
+      } else {
+        const fallbackVisitor = (await storage.getVisitors())[0];
+        contentId = fallbackVisitor ? fallbackVisitor.content_id : 'c-101';
+        visitorId = fallbackVisitor ? fallbackVisitor.id : 'v-1';
+      }
       
       const newLead = await storage.addLead({
-        visitor_id: fallbackVisitor ? fallbackVisitor.id : 'v-1',
+        visitor_id: visitorId,
         content_id: contentId,
         email: email || 'unassigned@customer.com',
         phone: phone || ''
