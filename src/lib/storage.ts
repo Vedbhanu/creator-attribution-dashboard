@@ -148,12 +148,12 @@ class StorageManager {
     }
 
     if (isSupabaseConfigured() && supabase) {
-      const { data, error } = await supabase
-        .from('content')
-        .select('*')
-        .eq('user_id', userId)
-        .order('created_at', { ascending: false });
-
+      const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(userId);
+      let query = supabase.from('content').select('*').order('created_at', { ascending: false });
+      if (isUuid) {
+        query = query.eq('user_id', userId);
+      }
+      const { data, error } = await query;
       if (!error && data) {
         return data as ContentItem[];
       }
@@ -194,6 +194,7 @@ class StorageManager {
   async createContent(item: Omit<ContentItem, 'id' | 'created_at'>): Promise<ContentItem> {
     const sanitizedUrl = this.sanitizeUrl(item.url);
     const sanitizedDestUrl = item.destination_url ? this.sanitizeUrl(item.destination_url) : undefined;
+    const isUuid = item.user_id && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(item.user_id);
 
     if (isSupabaseConfigured() && supabase) {
       const { data, error } = await supabase
@@ -204,7 +205,7 @@ class StorageManager {
           url: sanitizedUrl,
           destination_url: sanitizedDestUrl,
           tracking_slug: item.tracking_slug,
-          user_id: (item as any).user_id || 'demo',
+          user_id: isUuid ? item.user_id : null,
           published_at: item.published_at || new Date().toISOString()
         }])
         .select()
@@ -220,10 +221,10 @@ class StorageManager {
       ...item,
       url: sanitizedUrl,
       ...(sanitizedDestUrl ? { destination_url: sanitizedDestUrl } : {}),
-      user_id: (item as any).user_id || 'demo',
+      user_id: item.user_id || 'demo',
       created_at: new Date().toISOString()
     } as any;
-    this.contentList.unshift(newItem);
+    this.contentList.push(newItem);
     return newItem;
   }
 
