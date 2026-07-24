@@ -31,7 +31,7 @@ export async function GET(request: Request) {
     `response_type=code&` +
     `scope=${encodeURIComponent(scope)}&` +
     `access_type=offline&` +
-    `prompt=consent&` +
+    `prompt=select_account%20consent&` +
     `state=${encodeURIComponent(userId)}`;
 
   return NextResponse.redirect(oauthUrl);
