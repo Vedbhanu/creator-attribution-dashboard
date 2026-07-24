@@ -24,11 +24,11 @@ export async function POST(req: NextRequest) {
           .from('workspace_settings')
           .select('user_id, webhook_secret')
           .eq('webhook_secret', providedToken)
-          .single();
+          .limit(1);
 
-        if (data) {
+        if (data && data.length > 0) {
           isAuthorized = true;
-          authorizedUserId = data.user_id;
+          authorizedUserId = data[0].user_id;
         }
       } else if (!isSupabaseConfigured()) {
         // Local sandbox testing authorization
