@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Sparkles, Mail, Lock, User, ArrowRight, ArrowLeft } from 'lucide-react';
-import { supabase } from '@/lib/supabase';
+import { isSupabaseConfigured, supabase } from '@/lib/supabase';
 
 export default function SignupPage() {
   const router = useRouter();
@@ -23,6 +23,31 @@ export default function SignupPage() {
       }
     }
   }, []);
+
+  const handleGoogleLogin = async () => {
+    setError(null);
+    setLoading(true);
+    try {
+      if (isSupabaseConfigured() && supabase) {
+        const { error: authError } = await supabase.auth.signInWithOAuth({
+          provider: 'google',
+          options: {
+            redirectTo: `${window.location.origin}/dashboard`
+          }
+        });
+        if (authError) throw authError;
+      } else {
+        // Fallback for simulation/testing
+        localStorage.setItem('user_email', 'abdbhanu12@gmail.com');
+        localStorage.setItem('user_name', 'Ved Bhanu');
+        localStorage.setItem('user_role', 'admin');
+        router.push('/dashboard');
+      }
+    } catch (err: any) {
+      setError(err.message || 'Google registration failed.');
+      setLoading(false);
+    }
+  };
 
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -161,6 +186,23 @@ export default function SignupPage() {
             {loading ? 'Creating Account...' : 'Get Started Now →'}
           </button>
         </form>
+
+        <div className="relative flex items-center justify-center my-3">
+          <div className="border-t border-[#111111]/10 w-full"></div>
+          <span className="absolute bg-white px-3 text-[10px] font-extrabold text-[#8A8A8A] uppercase">Or</span>
+        </div>
+
+        <button
+          type="button"
+          onClick={handleGoogleLogin}
+          disabled={loading}
+          className="w-full py-3 rounded-xl bg-white hover:bg-[#F7F4EC] text-[#111111] font-black text-xs border-2 border-[#111111] shadow-[4px_4px_0px_#111111] active:translate-x-[2px] active:translate-y-[2px] active:shadow-[2px_2px_0px_#111111] transition-all inline-flex items-center justify-center gap-2"
+        >
+          <svg className="w-4 h-4" viewBox="0 0 24 24">
+            <path fill="#EA4335" d="M12.24 10.285V14.4h6.887c-.648 2.41-2.519 4.114-5.136 4.114A5.59 5.59 0 0 1 8.4 12.928a5.59 5.59 0 0 1 5.59-5.592c1.47 0 2.804.572 3.805 1.5l3.24-3.24A10.15 10.15 0 0 0 13.99 2.2a10.19 10.19 0 0 0-10.19 10.19 10.19 10.19 0 0 0 10.19 10.19c5.68 0 10.19-4.026 10.19-10.19 0-.61-.06-1.2-.17-1.765H12.24Z" />
+          </svg>
+          <span>Continue with Google</span>
+        </button>
 
         <div className="text-center pt-2 text-xs font-bold text-[#4B4B4B] space-y-2">
           <p>
