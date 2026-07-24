@@ -406,23 +406,34 @@ export default function SettingsPage() {
             {/* Generated Master Snippet Copy Box */}
             <div className="p-3.5 rounded-xl bg-white border-2 border-[#111111] space-y-2">
               <span className="text-[10px] font-black text-[#8A8A8A] uppercase tracking-wider block">Generated Snippet Payload</span>
-              <div className="flex items-center justify-between gap-3">
-                <code className="text-xs font-mono font-bold text-[#4A4FE0] break-all">
-                  {ctaTemplate.replace('{tracking_link}', `${customDomain ? `https://${customDomain}` : (typeof window !== 'undefined' ? window.location.origin : '')}/r/yt-main`)}
-                </code>
-                <button
-                  type="button"
-                  onClick={() => {
-                    const fullCta = ctaTemplate.replace('{tracking_link}', `${customDomain ? `https://${customDomain}` : (typeof window !== 'undefined' ? window.location.origin : '')}/r/yt-main`);
-                    navigator.clipboard.writeText(fullCta);
-                    showToast('📋 Master CTA Snippet copied to clipboard!');
-                  }}
-                  className="px-3.5 py-2 rounded-xl bg-[#4A4FE0] hover:bg-[#3b40cc] text-white border-2 border-[#111111] shadow-[2px_2px_0px_#111111] text-xs font-black inline-flex items-center gap-1.5 whitespace-nowrap transition-all"
-                >
-                  <Copy className="w-3.5 h-3.5" />
-                  <span>Copy CTA Snippet</span>
-                </button>
-              </div>
+              {(() => {
+                const userEmail = typeof window !== 'undefined' ? localStorage.getItem('user_email') || 'creator' : 'creator';
+                const userSlug = userEmail.split('@')[0].toLowerCase().replace(/[^a-z0-9]/g, '');
+                const activeDomain = customDomain && !customDomain.includes('yourdomain.com')
+                  ? `https://${customDomain}`
+                  : (typeof window !== 'undefined' ? window.location.origin : 'https://creator-attribution-dashboard.vercel.app');
+                const generatedLink = `${activeDomain}/r/yt-${userSlug || 'main'}`;
+                const fullCta = ctaTemplate.replace('{tracking_link}', generatedLink);
+
+                return (
+                  <div className="flex items-center justify-between gap-3">
+                    <code className="text-xs font-mono font-bold text-[#4A4FE0] break-all">
+                      {fullCta}
+                    </code>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        navigator.clipboard.writeText(fullCta);
+                        showToast('📋 Master CTA Snippet copied to clipboard!');
+                      }}
+                      className="px-3.5 py-2 rounded-xl bg-[#4A4FE0] hover:bg-[#3b40cc] text-white border-2 border-[#111111] shadow-[2px_2px_0px_#111111] text-xs font-black inline-flex items-center gap-1.5 whitespace-nowrap transition-all"
+                    >
+                      <Copy className="w-3.5 h-3.5" />
+                      <span>Copy CTA Snippet</span>
+                    </button>
+                  </div>
+                );
+              })()}
             </div>
 
             {/* Step-by-step Setup Guide */}
