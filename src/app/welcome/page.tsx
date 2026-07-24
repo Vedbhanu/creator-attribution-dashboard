@@ -76,7 +76,7 @@ export default function LandingPage() {
           You spent 15 hours editing a YouTube video. It got 5,000 views. <strong className="text-[#111111] bg-[#F6D74C] px-2 py-0.5 rounded border border-[#111111]">Did it make you $0 or $5,000?</strong> Track every visitor, email lead, and dollar back to the exact post that generated it.
         </p>
 
-        {/* Upgrade 5: Dual Call-to-Action */}
+        {/* Upgrade 5: Single Focused Call-to-Action */}
         <div className="space-y-4 pt-2">
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
             <Link
@@ -86,15 +86,6 @@ export default function LandingPage() {
               <Play className="w-5 h-5 text-[#F6D74C] fill-[#F6D74C]" />
               <span>Try Live Interactive Demo →</span>
             </Link>
-
-            <a
-              href="https://cal.com/ved-automation-contentleverage/creator-attribution"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="w-full sm:w-auto px-8 py-4 rounded-2xl bg-white hover:bg-[#F7F4EC] text-[#111111] font-black text-base border-3 border-[#111111] shadow-[5px_5px_0px_#111111] active:translate-x-[2px] active:translate-y-[2px] active:shadow-[2px_2px_0px_#111111] transition-all flex items-center justify-center gap-2"
-            >
-              <span>Schedule Strategy Call ($999 DFY) →</span>
-            </a>
           </div>
 
           {/* Upgrade 3: Social Proof & Revenue Trust Bar */}
