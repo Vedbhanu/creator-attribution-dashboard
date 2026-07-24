@@ -149,7 +149,7 @@ class StorageManager {
 
     if (isSupabaseConfigured() && supabase) {
       const { data, error } = await supabase
-        .from('content_items')
+        .from('content')
         .select('*')
         .eq('user_id', userId)
         .order('created_at', { ascending: false });
@@ -170,7 +170,7 @@ class StorageManager {
     if (memoryItem) return memoryItem;
 
     if (isSupabaseConfigured() && supabase) {
-      const { data, error } = await supabase.from('content_items').select('*').eq('tracking_slug', slug).single();
+      const { data, error } = await supabase.from('content').select('*').eq('tracking_slug', slug).single();
       if (!error && data) {
         return data as ContentItem;
       }
@@ -183,7 +183,7 @@ class StorageManager {
     if (memoryItem) return memoryItem;
 
     if (isSupabaseConfigured() && supabase) {
-      const { data, error } = await supabase.from('content_items').select('*').eq('id', id).single();
+      const { data, error } = await supabase.from('content').select('*').eq('id', id).single();
       if (!error && data) {
         return data as ContentItem;
       }
@@ -197,7 +197,7 @@ class StorageManager {
 
     if (isSupabaseConfigured() && supabase) {
       const { data, error } = await supabase
-        .from('content_items')
+        .from('content')
         .insert([{
           title: item.title,
           platform: item.platform,
