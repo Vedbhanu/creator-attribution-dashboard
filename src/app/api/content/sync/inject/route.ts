@@ -159,10 +159,17 @@ export async function POST(request: Request) {
 
       // Prepend the CTA snippet to the description
       const updatedDescription = `${customCta}\n\n${currentSnippet.description}`;
-      const updatedSnippet = {
-        ...currentSnippet,
-        description: updatedDescription
+      
+      // Sanitize snippet: Google YouTube API throws 403 Forbidden if read-only fields
+      // (like channelId, channelTitle, publishedAt, localized, thumbnails) are included in PUT payload
+      const updatedSnippet: any = {
+        title: currentSnippet.title,
+        description: updatedDescription,
+        categoryId: currentSnippet.categoryId || '22'
       };
+      if (currentSnippet.tags) updatedSnippet.tags = currentSnippet.tags;
+      if (currentSnippet.defaultLanguage) updatedSnippet.defaultLanguage = currentSnippet.defaultLanguage;
+      if (currentSnippet.defaultAudioLanguage) updatedSnippet.defaultAudioLanguage = currentSnippet.defaultAudioLanguage;
 
       try {
         await updateYouTubeVideoSnippet(videoId, updatedSnippet, accessToken);
