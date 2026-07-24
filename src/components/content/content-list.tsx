@@ -50,6 +50,37 @@ export function ContentList() {
       if (json.success && json.metrics) {
         setMetrics(json.metrics);
       }
+
+      // Automatically sync YouTube Channel feed to pull individual video titles
+      if (activeUserId !== 'demo') {
+        fetch(`/api/settings?userId=${encodeURIComponent(activeUserId)}`)
+          .then(r => r.json())
+          .then(settingsData => {
+            if (settingsData.success && settingsData.settings?.youtube_channel_url) {
+              fetch('/api/content/sync', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  userId: activeUserId,
+                  youtube_channel_url: settingsData.settings.youtube_channel_url
+                })
+              })
+              .then(res => res.json())
+              .then(syncRes => {
+                if (syncRes.success && syncRes.added > 0) {
+                  // Re-fetch content metrics to show newly synced video titles live!
+                  fetch(`/api/content?userId=${encodeURIComponent(activeUserId)}`)
+                    .then(r => r.json())
+                    .then(updatedJson => {
+                      if (updatedJson.success && updatedJson.metrics) {
+                        setMetrics(updatedJson.metrics);
+                      }
+                    });
+                }
+              });
+            }
+          });
+      }
     } catch (err) {
       console.error('Failed to fetch content:', err);
     } finally {
