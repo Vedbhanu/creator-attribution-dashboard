@@ -170,10 +170,12 @@ export function ContentList() {
   };
 
   const filteredMetrics = metrics.filter(m => {
+    // Only show automated YouTube tracking links once they receive at least 1 visitor click
+    const isMasterOrClicked = m.visitors_count > 0 || m.content.tracking_slug.endsWith('-main') || !m.content.tracking_slug.startsWith('yt-');
     const matchesSearch = m.content.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
                           m.content.tracking_slug.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesPlatform = selectedPlatform === 'All' || m.content.platform === selectedPlatform;
-    return matchesSearch && matchesPlatform;
+    return isMasterOrClicked && matchesSearch && matchesPlatform;
   });
 
   const platformsList = ['All', ...Array.from(new Set(metrics.map(m => m.content.platform)))];
@@ -293,6 +295,18 @@ export function ContentList() {
                     <QrCode className="w-3.5 h-3.5 text-[#4A4FE0]" />
                     <span>QR Code</span>
                   </button>
+
+                  {content.url && content.url !== '/' && (
+                    <a
+                      href={content.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="px-3 py-1.5 rounded-xl bg-[#EAFBF7] hover:bg-white text-[#0D9488] border-2 border-[#111111] font-extrabold text-[11px] inline-flex items-center gap-1 shadow-[2px_2px_0px_#111111]"
+                    >
+                      <ExternalLink className="w-3.5 h-3.5" />
+                      <span>▶️ View Original Video</span>
+                    </a>
+                  )}
                 </div>
               </div>
 
