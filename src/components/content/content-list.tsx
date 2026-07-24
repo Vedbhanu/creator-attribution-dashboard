@@ -67,16 +67,32 @@ export function ContentList() {
               })
               .then(res => res.json())
               .then(syncRes => {
-                if (syncRes.success && syncRes.added > 0) {
-                  // Re-fetch content metrics to show newly synced video titles live!
-                  fetch(`/api/content?userId=${encodeURIComponent(activeUserId)}`)
-                    .then(r => r.json())
-                    .then(updatedJson => {
-                      if (updatedJson.success && updatedJson.metrics) {
-                        setMetrics(updatedJson.metrics);
+                // Re-fetch content metrics to show newly synced video titles live!
+                fetch(`/api/content?userId=${encodeURIComponent(activeUserId)}`)
+                  .then(r => r.json())
+                  .then(async (updatedJson) => {
+                    if (updatedJson.success && updatedJson.metrics) {
+                      let updatedMetrics = updatedJson.metrics;
+                      const latestTitle = (syncRes.items && syncRes.items.length > 0) ? syncRes.items[0].title : null;
+                      const latestUrl = (syncRes.items && syncRes.items.length > 0) ? syncRes.items[0].url : null;
+
+                      if (latestTitle) {
+                        for (let i = 0; i < updatedMetrics.length; i++) {
+                          const m = updatedMetrics[i];
+                          if (m.content.title.includes('YouTube Master Channel Tracking') || m.content.title.includes('yt-abdbhanu')) {
+                            m.content.title = latestTitle;
+                            if (latestUrl) m.content.url = latestUrl;
+                            fetch(`/api/content/${m.content.id}`, {
+                              method: 'PUT',
+                              headers: { 'Content-Type': 'application/json' },
+                              body: JSON.stringify({ title: latestTitle, url: latestUrl || m.content.url })
+                            }).catch(e => console.error(e));
+                          }
+                        }
                       }
-                    });
-                }
+                      setMetrics(updatedMetrics);
+                    }
+                  });
               });
             }
           });
