@@ -163,7 +163,7 @@ export default function LoginPage() {
             disabled={loading}
             className="w-full py-3.5 rounded-xl bg-[#4A4FE0] hover:bg-[#3b40cc] text-white font-black text-xs border-2 border-[#111111] shadow-[4px_4px_0px_#111111] active:translate-x-[2px] active:translate-y-[2px] active:shadow-[2px_2px_0px_#111111] transition-all disabled:opacity-50"
           >
-            {loading ? 'Authenticating...' : 'Sign In to Dashboard →'}
+            {loading ? 'Authenticating...' : 'Login to Dashboard →'}
           </button>
         </form>
 
@@ -189,11 +189,6 @@ export default function LoginPage() {
             Don't have an account yet?{' '}
             <Link href="/signup" className="text-[#4A4FE0] hover:underline font-extrabold">
               Create Account
-            </Link>
-          </p>
-          <p>
-            <Link href="/" className="text-[#111111] hover:underline">
-              ← Back to Sales Page
             </Link>
           </p>
         </div>

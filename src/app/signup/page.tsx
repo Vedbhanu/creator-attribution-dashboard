@@ -199,7 +199,7 @@ export default function SignupPage() {
             disabled={loading}
             className="w-full py-3.5 rounded-xl bg-[#4A4FE0] hover:bg-[#3b40cc] text-white font-black text-xs border-2 border-[#111111] shadow-[4px_4px_0px_#111111] active:translate-x-[2px] active:translate-y-[2px] active:shadow-[2px_2px_0px_#111111] transition-all disabled:opacity-50"
           >
-            {loading ? 'Creating Account...' : 'Get Started Now →'}
+            {loading ? 'Creating Account...' : 'Create Account →'}
           </button>
         </form>
 
@@ -220,16 +220,11 @@ export default function SignupPage() {
           <span>Continue with Google</span>
         </button>
 
-        <div className="text-center pt-2 text-xs font-bold text-[#4B4B4B] space-y-2">
+        <div className="text-center pt-2 text-xs font-bold text-[#4B4B4B]">
           <p>
             Already have an account?{' '}
             <Link href="/login" className="text-[#4A4FE0] hover:underline font-extrabold">
-              Sign In
-            </Link>
-          </p>
-          <p>
-            <Link href="/" className="text-[#111111] hover:underline">
-              ← Back to Sales Page
+              Login
             </Link>
           </p>
         </div>
