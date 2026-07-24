@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { Sparkles, Mail, Lock, User, ArrowRight, ArrowLeft } from 'lucide-react';
+import { Sparkles, Mail, Lock, User, ArrowRight, ArrowLeft, Video } from 'lucide-react';
 import { isSupabaseConfigured, supabase } from '@/lib/supabase';
 
 export default function SignupPage() {
@@ -11,6 +11,7 @@ export default function SignupPage() {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [youtubeHandle, setYoutubeHandle] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -75,20 +76,21 @@ export default function SignupPage() {
         }
       }
 
-      // Save initial workspace settings
+      // Save initial workspace settings with YouTube handle
       fetch('/api/settings', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           userId: email,
-          brand_name: `${name}'s Workspace`,
+          brand_name: name ? `${name}'s Workspace` : 'My Workspace',
           currency: 'USD',
           custom_domain: 'attrib.yourdomain.com',
-          webhook_secret: 'whsec_creator_attrib_982374'
+          webhook_secret: 'whsec_creator_attrib_982374',
+          youtube_channel_url: youtubeHandle
         })
       }).catch(err => console.error(err));
 
-      router.push('/onboarding');
+      router.push('/dashboard');
       router.refresh();
     } catch (err: any) {
       if (typeof window !== 'undefined') {
@@ -96,7 +98,7 @@ export default function SignupPage() {
         localStorage.setItem('user_name', name || email.split('@')[0]);
         localStorage.setItem('user_role', 'client');
       }
-      router.push('/onboarding');
+      router.push('/dashboard');
     } finally {
       setLoading(false);
     }
@@ -143,6 +145,20 @@ export default function SignupPage() {
                 placeholder="Alex Smith"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
+                className="w-full pl-10 pr-4 py-3 rounded-xl bg-[#F7F4EC] border-2 border-[#111111] text-sm text-[#111111] font-bold focus:outline-none focus:bg-white"
+              />
+            </div>
+          </div>
+
+          <div className="space-y-1.5">
+            <label className="text-xs font-extrabold text-[#111111]">YouTube Handle or URL (Optional)</label>
+            <div className="relative">
+              <Video className="w-4 h-4 absolute left-3.5 top-3.5 text-[#111111]" />
+              <input
+                type="text"
+                placeholder="e.g. @AlexMedia or https://youtube.com/@AlexMedia"
+                value={youtubeHandle}
+                onChange={(e) => setYoutubeHandle(e.target.value)}
                 className="w-full pl-10 pr-4 py-3 rounded-xl bg-[#F7F4EC] border-2 border-[#111111] text-sm text-[#111111] font-bold focus:outline-none focus:bg-white"
               />
             </div>

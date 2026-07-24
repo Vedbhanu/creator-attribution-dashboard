@@ -29,7 +29,8 @@ export default function OnboardingWizardPage() {
 
   useEffect(() => {
     setOrigin(getAppDomain());
-  }, []);
+    router.replace('/dashboard');
+  }, [router]);
 
   const handleStep1Submit = async (e: React.FormEvent) => {
     e.preventDefault();
