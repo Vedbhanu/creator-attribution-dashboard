@@ -16,10 +16,27 @@ export async function GET(
     const utmCampaign = searchParams.get('utm_campaign') || searchParams.get('campaign') || undefined;
 
     // Lookup content item by tracking slug
-    const content = await storage.getContentBySlug(slug);
+    let content = await storage.getContentBySlug(slug);
 
     if (!content) {
-      // If slug doesn't exist, redirect to home page or show 404
+      // Auto-create Master Channel Tracking Content Item dynamically on first click
+      try {
+        const ownerEmail = slug.replace(/^yt-/, '').replace(/-main$/, '') + '@gmail.com';
+        content = await storage.createContent({
+          title: `YouTube Master Channel Tracking (${slug})`,
+          platform: 'YouTube',
+          url: '/',
+          tracking_slug: slug,
+          published_at: new Date().toISOString(),
+          user_id: ownerEmail
+        });
+      } catch (e) {
+        console.error('Error auto-creating master slug item:', e);
+      }
+    }
+
+    if (!content) {
+      // Fallback redirect to home if creation fails
       return NextResponse.redirect(new URL('/', request.url));
     }
 
