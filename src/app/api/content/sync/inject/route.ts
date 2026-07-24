@@ -3,7 +3,8 @@ import { storage } from '@/lib/storage';
 import { isSupabaseConfigured, supabase } from '@/lib/supabase';
 
 // 1. Fetch current video snippet from Google YouTube API
-async function getYouTubeVideoSnippet(videoId: string, accessToken: string) {
+async function getYouTubeVideoSnippet(videoId: string, accessToken: string | null) {
+  if (!accessToken) throw new Error('Google API Error (401): Unauthenticated (Access token missing)');
   const res = await fetch(
     `https://www.googleapis.com/youtube/v3/videos?id=${videoId}&part=snippet`,
     {
@@ -25,7 +26,8 @@ async function getYouTubeVideoSnippet(videoId: string, accessToken: string) {
 }
 
 // 2. Push updated video snippet back to Google YouTube API
-async function updateYouTubeVideoSnippet(videoId: string, snippet: any, accessToken: string) {
+async function updateYouTubeVideoSnippet(videoId: string, snippet: any, accessToken: string | null) {
+  if (!accessToken) throw new Error('Google API Error (401): Unauthenticated (Access token missing)');
   const res = await fetch(
     'https://www.googleapis.com/youtube/v3/videos?part=snippet',
     {
@@ -48,6 +50,40 @@ async function updateYouTubeVideoSnippet(videoId: string, snippet: any, accessTo
   return true;
 }
 
+// Helper to refresh Google OAuth Access Token using Refresh Token
+async function refreshGoogleAccessToken(userId: string, refreshToken: string) {
+  try {
+    const res = await fetch('https://oauth2.googleapis.com/token', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded'
+      },
+      body: new URLSearchParams({
+        client_id: process.env.GOOGLE_CLIENT_ID || '',
+        client_secret: process.env.GOOGLE_CLIENT_SECRET || '',
+        refresh_token: refreshToken,
+        grant_type: 'refresh_token'
+      })
+    });
+
+    if (res.ok) {
+      const data = await res.json();
+      const newAccessToken = data.access_token;
+
+      if (isSupabaseConfigured() && supabase) {
+        await supabase
+          .from('workspace_settings')
+          .update({ youtube_access_token: newAccessToken })
+          .eq('user_id', userId);
+      }
+      return newAccessToken;
+    }
+  } catch (err) {
+    console.error('Failed to refresh Google Access Token:', err);
+  }
+  return null;
+}
+
 export async function POST(request: Request) {
   try {
     const body = await request.json();
@@ -63,17 +99,19 @@ export async function POST(request: Request) {
 
     // Retrieve Workspace Settings to get Google OAuth token
     let accessToken: string | null = null;
+    let refreshToken: string | null = null;
     let autoInjectEnabled = false;
 
     if (isSupabaseConfigured() && supabase) {
       const { data } = await supabase
         .from('workspace_settings')
-        .select('youtube_access_token, youtube_auto_inject')
+        .select('youtube_access_token, youtube_refresh_token, youtube_auto_inject')
         .eq('user_id', userId)
         .single();
       
       if (data) {
         accessToken = data.youtube_access_token;
+        refreshToken = data.youtube_refresh_token;
         autoInjectEnabled = !!data.youtube_auto_inject;
       }
     }
@@ -95,7 +133,24 @@ export async function POST(request: Request) {
 
     // 4. Live Production API execution
     try {
-      const currentSnippet = await getYouTubeVideoSnippet(videoId, accessToken);
+      let currentSnippet;
+      try {
+        currentSnippet = await getYouTubeVideoSnippet(videoId, accessToken);
+      } catch (err: any) {
+        // If unauthenticated (401) and we have a refresh token, try to refresh it
+        if (err.message.includes('401') && refreshToken) {
+          console.log('[OAUTH] Access token expired, attempting refresh...');
+          const newAccessToken = await refreshGoogleAccessToken(userId, refreshToken);
+          if (newAccessToken) {
+            accessToken = newAccessToken;
+            currentSnippet = await getYouTubeVideoSnippet(videoId, accessToken);
+          } else {
+            throw err;
+          }
+        } else {
+          throw err;
+        }
+      }
       
       // Avoid injecting multiple times
       if (currentSnippet.description.includes(trackingUrl)) {
@@ -109,7 +164,21 @@ export async function POST(request: Request) {
         description: updatedDescription
       };
 
-      await updateYouTubeVideoSnippet(videoId, updatedSnippet, accessToken);
+      try {
+        await updateYouTubeVideoSnippet(videoId, updatedSnippet, accessToken);
+      } catch (err: any) {
+        // Retry once if token expired during update check
+        if (err.message.includes('401') && refreshToken) {
+          const newAccessToken = await refreshGoogleAccessToken(userId, refreshToken);
+          if (newAccessToken) {
+            await updateYouTubeVideoSnippet(videoId, updatedSnippet, newAccessToken);
+          } else {
+            throw err;
+          }
+        } else {
+          throw err;
+        }
+      }
 
       return NextResponse.json({
         success: true,
