@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Settings, Globe, Key, Sparkles, Save, Check, Copy, Zap, RefreshCw, Youtube, Video } from 'lucide-react';
+import { Settings, Globe, Key, Sparkles, Save, Check, Copy, Zap, RefreshCw, Youtube, Video, ExternalLink } from 'lucide-react';
 import { useToast } from '@/components/ui/toast';
 
 export default function SettingsPage() {
@@ -341,116 +341,114 @@ export default function SettingsPage() {
           </div>
         </div>
 
-        {/* YouTube Autopilot Channel Sync */}
-        <div className="p-6 rounded-3xl bg-white border-3 border-[#111111] shadow-[5px_5px_0px_#111111] space-y-4">
+        {/* YouTube Autopilot Channel Sync & Upload Defaults (Method 1) */}
+        <div className="p-6 rounded-3xl bg-white border-3 border-[#111111] shadow-[5px_5px_0px_#111111] space-y-5">
           <div className="flex items-center justify-between border-b-2 border-[#111111] pb-3">
             <div className="flex items-center gap-2">
               <Youtube className="w-5 h-5 text-[#FF0000]" />
-              <h2 className="text-base font-black text-[#111111]">YouTube Autopilot Sync</h2>
+              <h2 className="text-base font-black text-[#111111]">YouTube Autopilot (Upload Defaults Method)</h2>
             </div>
-            <button
-              type="button"
-              onClick={handleSyncChannel}
-              disabled={syncingChannel}
-              className="px-3.5 py-1.5 rounded-xl bg-[#F6D74C] text-[#111111] border-2 border-[#111111] text-xs font-black shadow-[2px_2px_0px_#111111] inline-flex items-center gap-1.5 hover:bg-white transition-all disabled:opacity-50"
-            >
-              {syncingChannel ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <Video className="w-3.5 h-3.5 text-[#4A4FE0]" />}
-              <span>{syncingChannel ? 'Syncing...' : '🔄 Sync Channel Feed'}</span>
-            </button>
+            <span className="px-3 py-1 rounded-full bg-[#EAFBF7] text-[#0D9488] border-2 border-[#111111] text-[10px] font-black uppercase tracking-wider">
+              ⚡ 100% Zero Friction
+            </span>
           </div>
 
           <div className="space-y-2">
             <label className="text-xs font-extrabold text-[#111111]">YouTube Channel URL or Handle (@handle)</label>
-            <input
-              type="text"
-              value={youtubeChannelUrl}
-              onChange={(e) => setYoutubeChannelUrl(e.target.value)}
-              placeholder="e.g. https://www.youtube.com/@AlexMedia"
-              className="w-full px-4 py-3 rounded-xl bg-[#F7F4EC] border-2 border-[#111111] text-xs font-bold text-[#111111] focus:outline-none focus:bg-white"
-            />
+            <div className="flex items-center gap-2">
+              <input
+                type="text"
+                value={youtubeChannelUrl}
+                onChange={(e) => setYoutubeChannelUrl(e.target.value)}
+                placeholder="e.g. https://www.youtube.com/@AlexMedia"
+                className="w-full px-4 py-3 rounded-xl bg-[#F7F4EC] border-2 border-[#111111] text-xs font-bold text-[#111111] focus:outline-none focus:bg-white"
+              />
+              <button
+                type="button"
+                onClick={handleSyncChannel}
+                disabled={syncingChannel}
+                className="px-4 py-3 rounded-xl bg-[#F6D74C] hover:bg-white text-[#111111] border-2 border-[#111111] text-xs font-black shadow-[2px_2px_0px_#111111] inline-flex items-center gap-1.5 whitespace-nowrap transition-all disabled:opacity-50"
+              >
+                {syncingChannel ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <Video className="w-3.5 h-3.5 text-[#4A4FE0]" />}
+                <span>{syncingChannel ? 'Syncing...' : '🔄 Sync Channel Feed'}</span>
+              </button>
+            </div>
             <p className="text-[11px] text-[#4B4B4B] font-bold">
-              When configured, our system automatically tracks your uploads and generates short redirect links (<code className="bg-[#F7F4EC] px-1 py-0.5 rounded text-[#4A4FE0]">/r/yt-slug</code>) for your videos.
+              Connect your handle so we can automatically discover your new uploads and populate your Content Library.
             </p>
           </div>
 
-          {/* Autopilot Description Injector settings */}
-          <div className="pt-4 border-t-2 border-[#111111]/10 space-y-4">
+          {/* Master Upload Defaults Autopilot Snippet Card */}
+          <div className="p-5 rounded-2xl bg-[#F7F4EC] border-2 border-[#111111] shadow-[3px_3px_0px_#111111] space-y-4">
             <div className="flex items-center justify-between">
-              <div className="space-y-0.5">
-                <label className="text-xs font-extrabold text-[#111111] flex items-center gap-1.5">
-                  <span className="w-2 h-2 rounded-full bg-[#EC4899]"></span>
-                  Enable YouTube Auto-Injection (Autopilot Pro)
-                </label>
-                <p className="text-[11px] text-[#4B4B4B] font-medium">
-                  Automatically inserts tracking link into new YouTube video descriptions via Google API.
+              <div>
+                <h3 className="text-xs font-black text-[#111111] flex items-center gap-1.5">
+                  <Sparkles className="w-4 h-4 text-[#4A4FE0]" />
+                  Your Master Channel CTA Snippet (For YouTube Upload Defaults)
+                </h3>
+                <p className="text-[11px] text-[#4B4B4B] font-semibold mt-0.5">
+                  Paste this snippet into YouTube Studio once, and 100% of your future uploads will track visitors automatically!
                 </p>
               </div>
+            </div>
+
+            <div className="space-y-1.5">
+              <label className="text-[11px] font-extrabold text-[#111111]">YouTube Description CTA Template</label>
               <input
-                type="checkbox"
-                checked={youtubeAutoInject}
-                onChange={(e) => setYoutubeAutoInject(e.target.checked)}
-                className="w-5 h-5 rounded border-2 border-[#111111] accent-[#EC4899] cursor-pointer"
+                type="text"
+                value={ctaTemplate}
+                onChange={(e) => setCtaTemplate(e.target.value)}
+                placeholder="🔥 Get Priority Access here 👉 {tracking_link}"
+                className="w-full px-4 py-2.5 rounded-xl bg-white border-2 border-[#111111] text-xs font-bold text-[#111111] focus:outline-none"
               />
             </div>
 
-            {youtubeAutoInject && (
-              <div className="space-y-3 pt-2 animate-fadeIn">
-                <div className="space-y-1.5">
-                  <label className="text-xs font-extrabold text-[#111111]">YouTube Description CTA Template</label>
-                  <input
-                    type="text"
-                    value={ctaTemplate}
-                    onChange={(e) => setCtaTemplate(e.target.value)}
-                    placeholder="🔥 Access resources here 👉 {tracking_link}"
-                    className="w-full px-4 py-3 rounded-xl bg-[#F7F4EC] border-2 border-[#111111] text-xs font-bold text-[#111111] focus:outline-none focus:bg-white"
-                  />
-                  <p className="text-[10px] text-[#8A8A8A] font-semibold">
-                    Use <code>{`{tracking_link}`}</code> where you want the short redirect URL to appear.
-                  </p>
-                </div>
-
-                <div className="p-3 rounded-xl bg-[#F7F4EC] border-2 border-[#111111] flex items-center justify-between gap-3 shadow-[2px_2px_0px_#111111]">
-                  <div className="text-[11px] font-bold text-[#111111]">
-                    Status: <span className={isConnected ? 'text-[#EC4899] font-black' : 'text-[#4B4B4B] font-black'}>
-                      {isConnected ? '✅ Live YouTube Connected' : '❌ Disconnected'}
-                    </span>
-                  </div>
-                  {isConnected ? (
-                    <div className="flex items-center gap-2">
-                      <button
-                        type="button"
-                        onClick={handleTestInject}
-                        disabled={testingInject}
-                        className="px-3.5 py-1.5 rounded-lg bg-[#EC4899] hover:bg-[#D6317C] text-white text-[11px] font-black border-2 border-[#111111] shadow-[2px_2px_0px_#111111] active:translate-y-[1px] transition-all disabled:opacity-50"
-                      >
-                        {testingInject ? 'Testing...' : '🧪 Test Injector'}
-                      </button>
-                      <button
-                        type="button"
-                        onClick={handleDisconnectYoutube}
-                        className="px-3.5 py-1.5 rounded-lg bg-red-100 text-red-600 text-[11px] font-black border-2 border-[#111111]"
-                      >
-                        Disconnect
-                      </button>
-                    </div>
-                  ) : (
-                    <button
-                      type="button"
-                      onClick={handleConnectYoutube}
-                      className="px-3.5 py-1.5 rounded-lg bg-[#4A4FE0] hover:bg-[#3b40cc] text-white text-[11px] font-black border-2 border-[#111111] shadow-[2px_2px_0px_#111111] active:translate-y-[1px] transition-all"
-                    >
-                      Connect YouTube Channel
-                    </button>
-                  )}
-                </div>
-
-                {injectResult && (
-                  <div className="p-3.5 rounded-xl bg-[#FDFCF8] border-2 border-[#111111] text-xs font-bold text-[#111111] shadow-[2px_2px_0px_#111111]">
-                    {injectResult}
-                  </div>
-                )}
+            {/* Generated Master Snippet Copy Box */}
+            <div className="p-3.5 rounded-xl bg-white border-2 border-[#111111] space-y-2">
+              <span className="text-[10px] font-black text-[#8A8A8A] uppercase tracking-wider block">Generated Snippet Payload</span>
+              <div className="flex items-center justify-between gap-3">
+                <code className="text-xs font-mono font-bold text-[#4A4FE0] break-all">
+                  {ctaTemplate.replace('{tracking_link}', `${customDomain ? `https://${customDomain}` : (typeof window !== 'undefined' ? window.location.origin : '')}/r/yt-main`)}
+                </code>
+                <button
+                  type="button"
+                  onClick={() => {
+                    const fullCta = ctaTemplate.replace('{tracking_link}', `${customDomain ? `https://${customDomain}` : (typeof window !== 'undefined' ? window.location.origin : '')}/r/yt-main`);
+                    navigator.clipboard.writeText(fullCta);
+                    showToast('📋 Master CTA Snippet copied to clipboard!');
+                  }}
+                  className="px-3.5 py-2 rounded-xl bg-[#4A4FE0] hover:bg-[#3b40cc] text-white border-2 border-[#111111] shadow-[2px_2px_0px_#111111] text-xs font-black inline-flex items-center gap-1.5 whitespace-nowrap transition-all"
+                >
+                  <Copy className="w-3.5 h-3.5" />
+                  <span>Copy CTA Snippet</span>
+                </button>
               </div>
-            )}
+            </div>
+
+            {/* Step-by-step Setup Guide */}
+            <div className="p-4 rounded-xl bg-white border-2 border-[#111111] space-y-2.5">
+              <h4 className="text-xs font-black text-[#111111] uppercase tracking-wider flex items-center gap-1.5">
+                <span>⚡ 30-Second Autopilot Setup Guide</span>
+              </h4>
+              <ol className="text-xs font-bold text-[#111111] space-y-2 list-decimal list-inside">
+                <li>Click <strong>"Copy CTA Snippet"</strong> above.</li>
+                <li>
+                  Open{' '}
+                  <a
+                    href="https://studio.youtube.com"
+                    target="_blank"
+                    rel="noreferrer"
+                    className="text-[#4A4FE-[#4A4FE0] text-[#4A4FE0] underline inline-flex items-center gap-1"
+                  >
+                    YouTube Studio → Settings → Upload Defaults <ExternalLink className="w-3 h-3" />
+                  </a>
+                </li>
+                <li>Paste into the <strong>Description</strong> box and click <strong>Save</strong>.</li>
+              </ol>
+              <div className="p-2.5 rounded-lg bg-[#EAFBF7] border border-[#111111] text-[11px] font-extrabold text-[#0D9488] flex items-center gap-1.5">
+                <span>🎉 Done! Every new video you publish will automatically include your tracking link on 100% autopilot.</span>
+              </div>
+            </div>
           </div>
         </div>
 
